@@ -20,7 +20,7 @@ WORD	*vgetmem(nbytes)
         struct  mblock  *p, *q, *leftover;
 
         disable(ps);
-        struct mblock v_heap_memlist = &proctab[currpid].vmemlist;
+        struct mblock *v_heap_memlist = &proctab[currpid].vmemlist;
 	if (nbytes==0 || v_heap_memlist->mnext== (struct mblock *) NULL) {
                 restore(ps);
                 return( (WORD *)SYSERR);
