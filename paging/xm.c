@@ -12,8 +12,19 @@
  */
 SYSCALL xmmap(int virtpage, bsd_t source, int npages)
 {
-  kprintf("xmmap - to be implemented!\n");
-  return SYSERR;
+	kprintf("---xmmap!\n");
+	
+	if (	npages <= 0 || npages >= MAX_FRAME_SIZE || 
+		source > NBSM || bsm_tab[source].bs_pid != currpid ||
+		bsm_tab[source].status == BSM_MAPPED) {
+		return SYSERR;
+	}
+	
+	// mapping here	
+	bsm_tab[source].bs_npages = npages;
+	bsm_tab[source].bs_vpno = virtpage;
+
+	return OK;
 }
 
 
@@ -24,6 +35,15 @@ SYSCALL xmmap(int virtpage, bsd_t source, int npages)
  */
 SYSCALL xmunmap(int virtpage)
 {
-  kprintf("To be implemented!");
-  return SYSERR;
+	kprintf("---xmunmap!\n");
+
+	int i = 0;
+	for (; i < NBSM; i++) {
+		if (bsm_tab[i].bs_vpno == virtpage && bsm_tab[i].bs_pid == currpid) {
+			bsm_tab[i].bs_status = BSM_UNMAPPED;
+			return OK;
+		}
+	}
+
+	return SYSERR;
 }
