@@ -10,8 +10,12 @@
  */
 SYSCALL init_frm()
 {
-  kprintf("To be implemented!\n");
-  return OK;
+	kprintf("---init frame!\n");
+	int i = 0; 
+	for(; i < NFRAMES; i++) {
+		frm_tab[i].status = FRM_UNMAPPED;
+	}
+	return OK;
 }
 
 /*-------------------------------------------------------------------------

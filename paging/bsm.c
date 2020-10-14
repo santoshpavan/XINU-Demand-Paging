@@ -11,6 +11,13 @@
  */
 SYSCALL init_bsm()
 {
+	// there are 8 entries in bsm_tab
+	bs_map_t bsm_tab[NBSM];
+	int i = 0;
+	for (; i < NBSM; i++) {
+		bsm_tab[i].bs_status = BSM_UNMAPPED
+	}
+	return OK;
 }
 
 /*-------------------------------------------------------------------------
@@ -19,6 +26,7 @@ SYSCALL init_bsm()
  */
 SYSCALL get_bsm(int* avail)
 {
+	
 }
 
 

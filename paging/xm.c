@@ -14,7 +14,7 @@ SYSCALL xmmap(int virtpage, bsd_t source, int npages)
 {
 	kprintf("---xmmap!\n");
 	
-	if (	npages <= 0 || npages >= MAX_FRAME_SIZE || 
+	if (	npages <= 0 || npages >= MAX_BST_SIZE || 
 		source > NBSM || bsm_tab[source].bs_pid != currpid ||
 		bsm_tab[source].status == BSM_MAPPED) {
 		return SYSERR;

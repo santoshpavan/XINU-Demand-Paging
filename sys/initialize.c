@@ -111,6 +111,51 @@ nulluser()				/* babysit CPU when no one is home */
 	
 	kprintf("clock %sabled\n", clkruns == 1?"en":"dis");
 
+	
+	/* PSP: creating global page tables and outer directory */
+	// create global page tables
+	pt_t global_pgtab_1[1024];
+	pt_t global_pgtab_2[1024];
+	pt_t global_pgtab_3[1024];
+	pt_t glabal_pgtab_4[1024];
+	int i = 0;
+	for(; i < MAX_FRAME_SIZE; i++) {
+		global_pgtab_1[i].pt_pres = 0;
+		global_pgtab_1[i].pt_mbz = 0;
+		global_pgtab_1[i].pt_global = 1; // as this is global
+		global_pgtab_1[i].pt_base = (1024 * 4096) + i * 4;		    }
+	int i = 0;
+        for(; i < MAX_FRAME_SIZE; i++) {
+                global_pgtab_2[i].pt_pres = 0;
+                global_pgtab_2[i].pt_mbz = 0;
+                global_pgtab_2[i].pt_global = 1; // as this is global
+                global_pgtab_2[i].pt_base = (1025 * 4096) + i * 4;
+        }
+	int i = 0;
+        for(; i < MAX_FRAME_SIZE; i++) {
+                global_pgtab_3[i].pt_pres = 0;
+                global_pgtab_3[i].pt_mbz = 0;
+                global_pgtab_3[i].pt_global = 1; // as this is global
+                global_pgtab_3[i].pt_base = (1026 * 4096) + i * 4;
+        }
+	int i = 0;
+	for(; i < MAX_FRAME_SIZE; i++) {
+                global_pgtab_3[i].pt_pres = 0;
+                global_pgtab_3[i].pt_mbz = 0;
+                global_pgtab_3[i].pt_global = 1; // as this is global
+                global_pgtab_3[i].pt_base = (1027 * 4096) + i * 4;
+        }
+	// create outer page directory
+	pd_t pd[1024];
+	int i = 0;
+        for(; i < MAX_FRANE_SIZE; i++) {
+                pd.pt_pres = 0;
+                pd.pt_mbz = 0;
+                pd.pt_global = 0; // as this is global
+                pd.pt_base = (1027 * 4096) + i * 4;
+	}
+	// enable paging
+	enable_paging();
 
 	/* create a process to execute the user's main program */
 	userpid = create(main,INITSTK,INITPRIO,INITNAME,INITARGS);
@@ -132,9 +177,7 @@ sysinit()
 	struct	pentry	*pptr;
 	struct	sentry	*sptr;
 	struct	mblock	*mptr;
-	SYSCALL pfintr();
-
-	
+	SYSCALL pfintr();	
 
 	numproc = 0;			/* initialize system variables */
 	nextproc = NPROC-1;
@@ -210,6 +253,11 @@ sysinit()
 
 	rdytail = 1 + (rdyhead=newqueue());/* initialize ready list */
 
+	
+	/* PSP: initialize backing store tables - paging/bsm.c */
+	init_bsm();
+	/* PSP: initialize frames */	
+	init_frm();
 
 	return(OK);
 }

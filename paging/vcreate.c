@@ -28,7 +28,8 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	long	args;			/* arguments (treated like an	*/
 					/* array in the code)		*/
 {
-	kprintf("To be implemented!\n");
+	kprintf("----CREATING PROCESS - vcreate\n");
+        restore(ps);	
 	return OK;
 }
 

@@ -29,7 +29,7 @@ typedef struct {
   unsigned int pt_pwt	: 1;		/* write through for this page? */
   unsigned int pt_pcd	: 1;		/* cache disable for this page? */
   unsigned int pt_acc	: 1;		/* page was accessed?		*/
-  unsigned int pt_dirty : 1;		/* page was written?		m - get a free entry from bsm_tab/
+  unsigned int pt_dirty : 1;		/* page was written?		m - get a free entry from bsm_tab*/
   unsigned int pt_mbz	: 1;		/* must be zero			*/
   unsigned int pt_global: 1;		/* should be zero in 586	*/
   unsigned int pt_avail : 3;		/* for programmer's use		*/
@@ -76,7 +76,9 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define FRAME0		1024	/* zero-th frame		*/
 #define NFRAMES 	1024	/* number of frames		*/
 #define NBSM		8	/* number of bsm tables		*/
-#define MAX_FRAME_SIZE	256	/* max in a page 256 entries	*/
+
+#define MAX_BST_SIZE	256	/* BST has max 256 entries	*/
+#define MAX_FRAME_SIZE	1024	/* Page has max 1024 entries	*/
 
 #define BSM_UNMAPPED	0
 #define BSM_MAPPED	1
@@ -93,3 +95,8 @@ SYSCALL write_bs(char *, bsd_t, int);
 
 #define BACKING_STORE_BASE	0x00800000
 #define BACKING_STORE_UNIT_SIZE 0x00100000
+
+/* PSP: system calls for frames */
+SYSCALL init_frm();
+SYSCALL free_frm(int* avail);
+SYSCALL get_frm(int i);
