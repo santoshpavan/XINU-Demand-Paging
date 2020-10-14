@@ -113,46 +113,41 @@ nulluser()				/* babysit CPU when no one is home */
 
 	
 	/* PSP: creating global page tables and outer directory */
-	// create global page tables
-	pt_t global_pgtab_1[1024];
-	pt_t global_pgtab_2[1024];
-	pt_t global_pgtab_3[1024];
-	pt_t glabal_pgtab_4[1024];
-	int i = 0;
-	for(; i < MAX_FRAME_SIZE; i++) {
-		global_pgtab_1[i].pt_pres = 0;
-		global_pgtab_1[i].pt_mbz = 0;
-		global_pgtab_1[i].pt_global = 1; // as this is global
-		global_pgtab_1[i].pt_base = (1024 * 4096) + i * 4;		    }
-	int i = 0;
-        for(; i < MAX_FRAME_SIZE; i++) {
-                global_pgtab_2[i].pt_pres = 0;
-                global_pgtab_2[i].pt_mbz = 0;
-                global_pgtab_2[i].pt_global = 1; // as this is global
-                global_pgtab_2[i].pt_base = (1025 * 4096) + i * 4;
-        }
-	int i = 0;
-        for(; i < MAX_FRAME_SIZE; i++) {
-                global_pgtab_3[i].pt_pres = 0;
-                global_pgtab_3[i].pt_mbz = 0;
-                global_pgtab_3[i].pt_global = 1; // as this is global
-                global_pgtab_3[i].pt_base = (1026 * 4096) + i * 4;
-        }
-	int i = 0;
-	for(; i < MAX_FRAME_SIZE; i++) {
-                global_pgtab_3[i].pt_pres = 0;
-                global_pgtab_3[i].pt_mbz = 0;
-                global_pgtab_3[i].pt_global = 1; // as this is global
-                global_pgtab_3[i].pt_base = (1027 * 4096) + i * 4;
-        }
-	// create outer page directory
-	pd_t pd[1024];
-	int i = 0;
-        for(; i < MAX_FRANE_SIZE; i++) {
-                pd.pt_pres = 0;
-                pd.pt_mbz = 0;
-                pd.pt_global = 0; // as this is global
-                pd.pt_base = (1027 * 4096) + i * 4;
+	// assigning the first FF PTE to the base ptr
+	struct pt_t *base_ptr = (pt_t *)(1024 * 4096);
+
+	unsigned int page_no = 0;
+	for (; page_no < N_GLOBAL_PT; page_no++) {
+		unsigned int pte_offset = 0;
+		for (; pte_offset < MAX_FRAME_SIZE; pte_offset++, base_ptr+=sizeof(struct pt_t) {
+			base_ptr->pt_pres = 1;
+			base_ptr->pt_write = 1;
+			base_ptr->pt_user = 0;
+			base_ptr->pt_pwt = 0;
+			base_ptr->pt_pcd = 0;
+			base_ptr->pt_acc = 0;
+			base_ptr->pt_dirty = 0;
+			base_ptr->pt_mbz = 0;
+			base_ptr->pt_global = 1;
+			base_ptr->pt_avail = 0; // not sure
+			base_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pt_t);
+		}
+	}
+	// create outer page table for null process
+	pd_t *base_pd_ptr = (pd_t *) base_ptr;
+	pte_offset = 0;
+	for (; pte_offset < MAX_FRAME_SIZE; pte_offset++, base_pd_ptr+=sizeof(struct pd_t) {
+		base_pd_ptr->pd_pres = 1;
+                base_pd_ptr->pd_write = 1;
+                base_pd_ptr->pd_user = 0;
+                base_pd_ptr->pd_pwt = 0;
+                base_pd_ptr->pd_pcd = 0;
+                base_pd_ptr->pd_acc = 0;
+                base_pd_ptr->pd_mbz = 0;
+		base_pd_ptr->fmb = 0;
+                base_pd_ptr->pd_global = 0;
+                base_pd_ptr->pt_avail = 0; // not sure
+                base_pd_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pd_t);
 	}
 	// enable paging
 	enable_paging();

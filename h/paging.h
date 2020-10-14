@@ -57,6 +57,8 @@ typedef struct{
   int fr_refcnt;			/* reference count		*/
   int fr_type;				/* FR_DIR, FR_TBL, FR_PAGE	*/
   int fr_dirty;
+  //struct pd_t;			/* PSP: linking frame and pd_t	*/
+  //struct pt_t;			/* PSP: linking frame and pd_d	*/
 }fr_map_t;
 
 extern bs_map_t bsm_tab[];
@@ -77,8 +79,10 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define NFRAMES 	1024	/* number of frames		*/
 #define NBSM		8	/* number of bsm tables		*/
 
+/* PSP: more constants used */
 #define MAX_BST_SIZE	256	/* BST has max 256 entries	*/
 #define MAX_FRAME_SIZE	1024	/* Page has max 1024 entries	*/
+#define N_GLOBAL_PT	4	/* number of global page tables	*/
 
 #define BSM_UNMAPPED	0
 #define BSM_MAPPED	1
