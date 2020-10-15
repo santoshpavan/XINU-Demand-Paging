@@ -46,8 +46,9 @@ typedef struct{
   int bs_status;			/* MAPPED or UNMAPPED		*/
   int bs_pid;				/* process id using this slot   */
   int bs_vpno;				/* starting virtual page number */
-  int bs_npages;			/* number of pages in the store */
+  int bs_npages;			/* no of pages in the store used*/
   int bs_sem;				/* semaphore mechanism ?	*/
+  int pvt;				/* PSP:BS used for private heap?*/
 } bs_map_t;
 
 typedef struct{
@@ -63,12 +64,12 @@ typedef struct{
 
 extern bs_map_t bsm_tab[];
 extern fr_map_t frm_tab[];
+
 /* Prototypes for required API calls */
 SYSCALL xmmap(int, bsd_t, int);
 SYSCALL xunmap(int);
 
 /* given calls for dealing with backing store */
-
 int get_bs(bsd_t, unsigned int);
 SYSCALL release_bs(bsd_t);
 SYSCALL read_bs(char *, bsd_t, int);
@@ -77,15 +78,6 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define NBPG		4096	/* number of bytes per page	*/
 #define FRAME0		1024	/* zero-th frame		*/
 #define NFRAMES 	1024	/* number of frames		*/
-#define NBSM		8	/* number of bsm tables		*/
-
-/* PSP: more constants used */
-#define MAX_BST_SIZE	256	/* BST has max 256 entries	*/
-#define MAX_FRAME_SIZE	1024	/* Page has max 1024 entries	*/
-#define N_GLOBAL_PT	4	/* number of global page tables	*/
-
-#define BSM_UNMAPPED	0
-#define BSM_MAPPED	1
 
 #define FRM_UNMAPPED	0
 #define FRM_MAPPED	1
@@ -100,7 +92,35 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define BACKING_STORE_BASE	0x00800000
 #define BACKING_STORE_UNIT_SIZE 0x00100000
 
+/* PSP: more constants used */
+#define NBSM            8       /* number of bsm tables         */
+#define MAX_BST_SIZE    256     /* BST has max 256 entries      */
+#define MAX_FRAME_SIZE  1024    /* Page has max 1024 entries    */
+#define N_GLOBAL_PT     4       /* number of global page tables */
+#define BS_UNMAPPED	0
+#define BS_MAPPED	1
+#define NOT_PRIVATE	0
+#define PRIVATE		1
+
 /* PSP: system calls for frames */
 SYSCALL init_frm();
-SYSCALL free_frm(int* avail);
-SYSCALL get_frm(int i);
+SYSCALL free_frm(int *);
+SYSCALL get_frm(int);
+
+/* PSP: syscalls for bsm */
+SYSCALL init_bsm();
+SYSCALL get_bsm(int *);
+SYSCALL free_bsm(int);
+SYSCALL bsm_lookup(int, long, int *, int *);
+SYSCALL bsm_map(int, int, int, int);
+SYSCALL bsm_unmap(int, int, int);
+
+/* PSP: Control Registers functions */
+unsigned long read_cr0(void);
+unsigned long read_cr2(void);
+unsigned long read_cr3(void);
+unsigned long read_cr4(void);
+void write_cr0(unsigned long);
+void write_cr3(unsigned long);
+void write_cr4(unsigned long);
+void enable_paging();

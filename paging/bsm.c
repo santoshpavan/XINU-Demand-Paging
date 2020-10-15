@@ -53,6 +53,11 @@ SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
  */
 SYSCALL bsm_map(int pid, int vpno, int source, int npages)
 {
+	bsm_tab[source].bs_status = BS_MAPPED;
+        bsm_tab[source].bs_pid = currpid;
+        bsm_tab[source].bs_npages = npages;
+        bsm_tab[source].bs_vpno = virtpage;
+	return OK;
 }
 
 
@@ -63,6 +68,13 @@ SYSCALL bsm_map(int pid, int vpno, int source, int npages)
  */
 SYSCALL bsm_unmap(int pid, int vpno, int flag)
 {
+	int i = 0;
+	for (; i < NBMS; i++) {
+		if (bsm_tab[i].bs_pid == currpid && bsm_tab[i].bs_vpno == vpno) {
+		bsm_tab[i].bs_status = BSM_UNMAPPED;
+	}
+	}
+	return OK;
 }
 
 
