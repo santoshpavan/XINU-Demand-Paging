@@ -114,12 +114,13 @@ nulluser()				/* babysit CPU when no one is home */
 	
 	/* PSP: creating global page tables and outer directory */
 	// assigning the first FF PTE to the base ptr
+	// TODO: not an addr but just an int
 	struct pt_t *base_ptr = (pt_t *)(1024 * 4096);
-
+	// creating global page tables
 	unsigned int page_no = 0;
 	for (; page_no < N_GLOBAL_PT; page_no++) {
-		unsigned int pte_offset = 0;
-		for (; pte_offset < MAX_FRAME_SIZE; pte_offset++, base_ptr+=sizeof(struct pt_t) {
+		unsigned int pte_ind = 0;
+		for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_ptr+=sizeof(struct pt_t)) {
 			base_ptr->pt_pres = 1;
 			base_ptr->pt_write = 1;
 			base_ptr->pt_user = 0;
@@ -129,14 +130,17 @@ nulluser()				/* babysit CPU when no one is home */
 			base_ptr->pt_dirty = 0;
 			base_ptr->pt_mbz = 0;
 			base_ptr->pt_global = 1;
-			base_ptr->pt_avail = 0; // not sure
-			base_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pt_t);
+			base_ptr->pt_avail = 0; //TODO: not sure
+			//base_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pt_t);
+			// mapping the global tables
+			// TODO: this is not address but just int
+			base_ptr->pt_base = pte_ind * (page_no + 1) * 4096;
 		}
 	}
 	// create outer page table for null process
 	pd_t *base_pd_ptr = (pd_t *) base_ptr;
-	pte_offset = 0;
-	for (; pte_offset < MAX_FRAME_SIZE; pte_offset++, base_pd_ptr+=sizeof(struct pd_t) {
+	pte_ind = 0;
+	for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_pd_ptr+=sizeof(struct pd_t)) {
 		base_pd_ptr->pd_pres = 1;
                 base_pd_ptr->pd_write = 1;
                 base_pd_ptr->pd_user = 0;
@@ -146,9 +150,16 @@ nulluser()				/* babysit CPU when no one is home */
                 base_pd_ptr->pd_mbz = 0;
 		base_pd_ptr->fmb = 0;
                 base_pd_ptr->pd_global = 0;
-                base_pd_ptr->pt_avail = 0; // not sure
-                base_pd_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pd_t);
+                base_pd_ptr->pt_avail = 0; // TODO:not sure
+                //base_pd_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pd_t);
 	}
+	// mapping NULL proc outer table to global tables
+	*base_pd_ptr = (pd_t *) base_ptr;
+	pte_ind = 0;
+	for(; pte_ind < 4; pte_ind++, base_pd_ptr+=sizeof(struct pd_t)) {
+		base_pd_ptr->pt_base = (pte_ind + 1) * (1024 * 4096);
+	}
+
 	// enable paging
 	enable_paging();
 
