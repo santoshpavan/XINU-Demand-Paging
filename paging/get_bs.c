@@ -13,8 +13,8 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
 		bs_id < 0 || bs_id >= NBSM ) {
 		return SYSERR
 	}
-
-	if (bsm_tab[bs_id].bs_status == BS_MAPPED) {
+	int bs_ind = (int)bs_id;
+	if (bsm_tab[bs_ind].bs_status == BS_MAPPED) {
 		/*if (bsm_tab[bs_id].bs_pid == currpid &&
 			bsm_tab[bs_id].bs_npages + npages <= MAX_BST_SIZE) {
 			bsm_tab[bs_npages] += npages;
@@ -22,17 +22,19 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
 		else
 			return SYSERR;
 		*/
-		if (	bsm_tab[bs_id].bs_pid != currpid ||
-                        bsm_tab[bs_id].bs_npages + npages > MAX_BST_SIZE)
+		if (	bsm_tab[bs_ind].bs_pid != currpid ||
+                        bsm_tab[bs_ind].bs_npages + npages > MAX_BST_SIZE)
 			return SYSERR;
 	}
-	/*
 	else {
+		return bsm_tab[bs_ind].bs_npages;
+		/*
 		bsm_tab[bs_id].bs_status = BS_MAPPED;
 		bsm_tab[bs_id].bs_pid = currpid;
 		bsm_tab[bs_id].bs_npages = npages;
+		*/
 	}
-	*/
+	
 	// if already mapped
 	/*
 	if (bsm_tab[bs_id].bs_status == BS_MAPPED) {

@@ -26,7 +26,16 @@ SYSCALL init_bsm()
  */
 SYSCALL get_bsm(int* avail)
 {
-	
+	/* intereate through the bsm_tab
+ 	* the first one that is unmapped take it.
+ 	*/
+	int i = 0;
+	for (; i < NBSM; i++) {
+		if (get_bs((bsd_t) i, *avail) != SYSERR) {
+			return i;
+		}
+	}
+	return SYSERR;
 }
 
 
@@ -76,5 +85,4 @@ SYSCALL bsm_unmap(int pid, int vpno, int flag)
 	}
 	return OK;
 }
-
 
