@@ -101,6 +101,7 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define BS_MAPPED	1
 #define NOT_PRIVATE	0
 #define IS_PRIVATE	1
+#define PF_INTERRUPT	14
 
 /* PSP: system calls for frames */
 SYSCALL init_frm();

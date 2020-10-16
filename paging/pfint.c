@@ -11,9 +11,9 @@
  */
 SYSCALL pfint()
 {
-
-  kprintf("To be implemented!\n");
-  return OK;
+	kprintf("!--pfint\n");
+	set_evec(PF_INTERRUPT, (void (* isr)(void)));
+  	return OK;
 }
 
 
