@@ -15,7 +15,10 @@ SYSCALL init_bsm()
 	bs_map_t bsm_tab[NBSM];
 	int i = 0;
 	for (; i < NBSM; i++) {
-		bsm_tab[i].bs_status = BSM_UNMAPPED
+		bsm_tab[i].bs_status = BSM_UNMAPPED;
+		bsm_tab[i].bs_pid = -1;
+		bsm_tab[i].bs_npages = 0;
+		bsm_tab[i].pvt = NOT_PRIVATE;
 	}
 	return OK;
 }
@@ -46,6 +49,11 @@ SYSCALL get_bsm(int* avail)
  */
 SYSCALL free_bsm(int i)
 {
+	// called when the BS is private and reset everything
+	bsm_tab[i].bs_status = BSM_UNMAPPED;
+        bsm_tab[i].bs_pid = -1;
+        bsm_tab[i].bs_npages = 0;
+        bsm_tab[i].pvt = NOT_PRIVATE;
 }
 
 /*-------------------------------------------------------------------------
