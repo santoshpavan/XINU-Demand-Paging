@@ -26,8 +26,9 @@ SYSCALL init_bsm()
  */
 SYSCALL get_bsm(int* avail)
 {
-	/* intereate through the bsm_tab
- 	* the first one that is unmapped take it.
+	/* 
+ 	* intereate through the bsm_tab
+ 	* the first one that is available take it.
  	*/
 	int i = 0;
 	for (; i < NBSM; i++) {

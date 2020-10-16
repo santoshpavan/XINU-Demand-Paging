@@ -15,47 +15,12 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
 	}
 	int bs_ind = (int)bs_id;
 	if (bsm_tab[bs_ind].bs_status == BS_MAPPED) {
-		/*if (bsm_tab[bs_id].bs_pid == currpid &&
-			bsm_tab[bs_id].bs_npages + npages <= MAX_BST_SIZE) {
-			bsm_tab[bs_npages] += npages;
-		}
+		if (bsm_tab[bs_ind].pvt == PRIVATE)
+			return SYSERR;
+		//TODO: else statement doesn't make sense
 		else
-			return SYSERR;
-		*/
-		if (	bsm_tab[bs_ind].bs_pid != currpid ||
-                        bsm_tab[bs_ind].bs_npages + npages > MAX_BST_SIZE)
-			return SYSERR;
+			return bsm_tab[bs_ind].bs_npages;
 	}
-	else {
-		return bsm_tab[bs_ind].bs_npages;
-		/*
-		bsm_tab[bs_id].bs_status = BS_MAPPED;
-		bsm_tab[bs_id].bs_pid = currpid;
-		bsm_tab[bs_id].bs_npages = npages;
-		*/
-	}
-	
-	// if already mapped
-	/*
-	if (bsm_tab[bs_id].bs_status == BS_MAPPED) {
-		if (bsm_tab[bs_id].pvt == PRIVATE) {
-			if (bsm_tab[bs_id].bs_pid != currpid)
-				return SYSERR;
-			else
-				update_bsm(bs_id, npages);
-		}
-		// not private but not enough pages
-		else if (npages > MAX_BST_SIZE - bsm_tab[bs_id].bs_npages) {
-			return SYSERR;
-		}
-		else {
-			update_bsm_tab(bs_id, npages); 
-		}
-	}
-	else {
-		
-	}
-	*/
 	return npages;
 }
 
