@@ -12,7 +12,7 @@
 SYSCALL pfint()
 {
 	kprintf("!--pfint\n");
-	set_evec(PF_INTERRUPT, (void (* isr)(void)));
+	set_evec(PF_INTERRUPT + IRQBASE, (void (* isr)(void)));
   	return OK;
 }
 

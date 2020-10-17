@@ -8,18 +8,18 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
 	/* no mapping to be performed here */
 	/* mapping done in xmmap */
 	kprintf("---get_bs!\n");
-	
-	if (	npages == 0 || npages > MAX_BST_SIZE ||
-		bs_id < 0 || bs_id >= NBSM ) {
+	int bs_ind = (int)bs_id;
+	if (	npages <= 0 || npages > MAX_BST_SIZE ||
+		bs_ind < 0 || bs_ind >= NBSM ) {
 		return SYSERR
 	}
-	int bs_ind = (int)bs_id;
+	if (proctab[currpid].pvtproc == IS_PRIVATE) {
+                //if (bsm_tab[bs_ind].bs_status == BS_MAPPED)
+                        return SYSERR;
+        }
+	//int bs_ind = (int)bs_id;
 	if (bsm_tab[bs_ind].bs_status == BS_MAPPED) {
-		if (bsm_tab[bs_ind].pvt == PRIVATE)
-			return SYSERR;
-		//TODO: else statement doesn't make sense
-		else
-			return bsm_tab[bs_ind].bs_npages;
+		return bsm_tab[bs_ind].bs_npages;
 	}
 	return npages;
 }

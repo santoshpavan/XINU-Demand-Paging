@@ -86,12 +86,10 @@ SYSCALL bsm_map(int pid, int vpno, int source, int npages)
  */
 SYSCALL bsm_unmap(int pid, int vpno, int flag)
 {
-	int i = 0;
-	for (; i < NBMS; i++) {
-		if (bsm_tab[i].bs_pid == currpid && bsm_tab[i].bs_vpno == vpno) {
-		bsm_tab[i].bs_status = BSM_UNMAPPED;
-	}
-	}
+	int bs_ind = proctab[pid].store;
+	proctab[pid].store = -1;
+	bsm_tab[bs_ind].bs_status = BSM_UNMAPPED;
+	bsm_tab[bs_ind].pvt = NOT_PRIVATE;
 	return OK;
 }
 

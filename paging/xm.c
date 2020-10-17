@@ -21,13 +21,14 @@ SYSCALL xmmap(int virtpage, bsd_t source, int npages)
 		return SYSERR;
 	}
 	*/
-
+	int bs_ind = (int) source;
 	// checking mapping availability here
-	if (get_bs(source, npages) == SYSERR)
+	if (get_bs(source, npages) == SYSERR || 
+		bsm_tab[bs_ind].pvt == IS_PRIVATE)
 		return SYSERR;
 	// mapping here
-	if (bsm_tab[source].bs_status == BS_UNMAPPED) {
-		bsm_map(currpid, virtpage, source, npages);
+	if (bsm_tab[bs_ind].bs_status == BS_UNMAPPED) {
+		bsm_map(currpid, virtpage, bs_ind, npages);
 		/*
 		bsm_tab[source].bs_status = BS_MAPPED;
 		bsm_tab[source].bs_pid = currpid;
@@ -53,7 +54,7 @@ SYSCALL xmunmap(int virtpage)
 
 	int i = 0;
 	for (; i < NBSM; i++) {
-		if (bsm_tab[i].bs_vpno == virtpage && bsm_tab[i].bs_pid == currpid) {
+		if (bsm_tab[i].bs_vpno == virtpage) {
 			//bsm_tab[i].bs_status = BSM_UNMAPPED;
 			bsm_unmap(currpid, virtpage, BSM_UNMAPPED);
 			return OK;

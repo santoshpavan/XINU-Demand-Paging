@@ -21,7 +21,8 @@ WORD	*vgetmem(nbytes)
 
         disable(ps);
         struct mblock *v_heap_memlist = &proctab[currpid].vmemlist;
-	if (nbytes==0 || v_heap_memlist->mnext== (struct mblock *) NULL) {
+	if (nbytes == 0 || nbytes > proctab[currpid].vhpnpages*4096 ||
+		v_heap_memlist->mnext == (struct mblock *) NULL) {
                 restore(ps);
                 return( (WORD *)SYSERR);
         }
