@@ -115,7 +115,7 @@ nulluser()				/* babysit CPU when no one is home */
 	/* PSP: creating global page tables and outer directory */
 	// assigning the first FF PTE to the base ptr
 	// TODO: not an addr but just an int
-	struct pt_t *base_ptr = (pt_t *)(1024 * 4096);
+	struct pt_t *base_ptr = (pt_t *)((1024 * 4096) + 1);
 	// creating global page tables
 	unsigned int page_no = 0;
 	for (; page_no < N_GLOBAL_PT; page_no++) {
@@ -134,11 +134,11 @@ nulluser()				/* babysit CPU when no one is home */
 			//base_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pt_t);
 			// mapping the global tables
 			// TODO: this is not address but just int
-			base_ptr->pt_base = pte_ind * (page_no + 1) * 4096;
+			base_ptr->pt_base = (pt_pt *)pte_ind * (page_no + 1) * 4096;
 		}
 	}
 	// create outer page table for null process
-	pd_t *base_pd_ptr = (pd_t *) base_ptr;
+	pd_t *base_pd_ptr = (pd_t *)((1023 * 4096) + 1);
 	pte_ind = 0;
 	for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_pd_ptr+=sizeof(struct pd_t)) {
 		base_pd_ptr->pd_pres = 1;
@@ -157,7 +157,7 @@ nulluser()				/* babysit CPU when no one is home */
 	*base_pd_ptr = (pd_t *) base_ptr;
 	pte_ind = 0;
 	for(; pte_ind < 4; pte_ind++, base_pd_ptr+=sizeof(struct pd_t)) {
-		base_pd_ptr->pt_base = (pte_ind + 1) * (1024 * 4096);
+		base_pd_ptr->pt_base = ((1024 + pte_ind) * 4096) + 1;
 	}
 
 	// enable paging

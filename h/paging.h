@@ -86,8 +86,8 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define FR_TBL		1
 #define FR_DIR		2
 
-#define SC 3
-#define AGING 4
+#define SC 		3
+#define AGING 		4
 
 #define BACKING_STORE_BASE	0x00800000
 #define BACKING_STORE_UNIT_SIZE 0x00100000
@@ -125,3 +125,4 @@ void write_cr0(unsigned long);
 void write_cr3(unsigned long);
 void write_cr4(unsigned long);
 void enable_paging();
+
