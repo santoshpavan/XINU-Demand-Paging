@@ -71,6 +71,7 @@ SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
  */
 SYSCALL bsm_map(int pid, int vpno, int source, int npages)
 {
+	// TODO: map all the vpno of size npages
 	bsm_tab[source].bs_status = BS_MAPPED;
         bsm_tab[source].bs_pid = currpid;
         bsm_tab[source].bs_npages = npages;

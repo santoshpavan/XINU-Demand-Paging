@@ -23,7 +23,8 @@ SYSCALL xmmap(int virtpage, bsd_t source, int npages)
 	*/
 	int bs_ind = (int) source;
 	// checking mapping availability here
-	if (get_bs(source, npages) == SYSERR || 
+	int check = get_bs(source, npages);
+	if (check == SYSERR || check < npages || 
 		bsm_tab[bs_ind].pvt == IS_PRIVATE)
 		return SYSERR;
 	// mapping here
