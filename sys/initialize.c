@@ -189,6 +189,10 @@ sysinit()
 	    init_dev(i);
 	}
 #endif
+	/* PSP: initialize backing store tables - paging/bsm.c */
+        init_bsm();
+        /* PSP: initialize frames */
+        init_frm();
 
 	pptr = &proctab[NULLPROC];	/* initialize null process entry */
 	pptr->pstate = PRCURR;
@@ -217,13 +221,7 @@ sysinit()
 		sptr->sqtail = 1 + (sptr->sqhead = newqueue());
 	}
 
-	rdytail = 1 + (rdyhead=newqueue());/* initialize ready list */
-
-	
-	/* PSP: initialize backing store tables - paging/bsm.c */
-	init_bsm();
-	/* PSP: initialize frames */	
-	init_frm();
+	rdytail = 1 + (rdyhead=newqueue());/* initialize ready list */	
 
 	return(OK);
 }
