@@ -4,10 +4,7 @@
 #include <kernel.h>
 #include <proc.h>
 #include <q.h>
-//#include <paging.h>
 
-/*PSP: using extern instead of including entire library*/
-extern void enable_paging();
 unsigned long currSP;	/* REAL sp of current process */
 
 /*------------------------------------------------------------------------
@@ -85,8 +82,7 @@ int	resched()
 #ifdef	DEBUG
 	PrintSaved(nptr);
 #endif
-	/*PSP: enabling paging */
-	enable_paging();	
+	
 	ctxsw(&optr->pesp, optr->pirmask, &nptr->pesp, nptr->pirmask);
 
 #ifdef	DEBUG
