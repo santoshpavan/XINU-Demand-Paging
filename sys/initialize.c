@@ -46,6 +46,10 @@ int	rdyhead,rdytail;	/* head/tail of ready list (q indicies)	*/
 char 	vers[80];
 int	console_dev;		/* the console device			*/
 
+/* User defined functions */
+void create_null_proc_pd(void);
+void create_global_pg_tables(void);
+
 /*  added for the demand paging */
 int page_replace_policy = SC;
 
@@ -110,56 +114,7 @@ nulluser()				/* babysit CPU when no one is home */
 #endif	
 	
 	kprintf("clock %sabled\n", clkruns == 1?"en":"dis");
-
 	
-	/* PSP: creating global page tables and outer directory */
-	// assigning the first FF PTE to the base ptr
-	// TODO: not an addr but just an int
-	struct pt_t *base_ptr = (pt_t *)((1024 * 4096) + 1);
-	// creating global page tables
-	unsigned int page_no = 0;
-	for (; page_no < N_GLOBAL_PT; page_no++) {
-		unsigned int pte_ind = 0;
-		for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_ptr+=sizeof(struct pt_t)) {
-			base_ptr->pt_pres = 1;
-			base_ptr->pt_write = 1;
-			base_ptr->pt_user = 0;
-			base_ptr->pt_pwt = 0;
-			base_ptr->pt_pcd = 0;
-			base_ptr->pt_acc = 0;
-			base_ptr->pt_dirty = 0;
-			base_ptr->pt_mbz = 0;
-			base_ptr->pt_global = 1;
-			base_ptr->pt_avail = 0; //TODO: not sure
-			//base_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pt_t);
-			// mapping the global tables
-			// TODO: this is not address but just int
-			base_ptr->pt_base = (pt_pt *)pte_ind * (page_no + 1) * 4096;
-		}
-	}
-	// create outer page table for null process
-	pd_t *base_pd_ptr = (pd_t *)((1023 * 4096) + 1);
-	pte_ind = 0;
-	for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_pd_ptr+=sizeof(struct pd_t)) {
-		base_pd_ptr->pd_pres = 1;
-                base_pd_ptr->pd_write = 1;
-                base_pd_ptr->pd_user = 0;
-                base_pd_ptr->pd_pwt = 0;
-                base_pd_ptr->pd_pcd = 0;
-                base_pd_ptr->pd_acc = 0;
-                base_pd_ptr->pd_mbz = 0;
-		base_pd_ptr->fmb = 0;
-                base_pd_ptr->pd_global = 0;
-                base_pd_ptr->pt_avail = 0; // TODO:not sure
-                //base_pd_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pd_t);
-	}
-	// mapping NULL proc outer table to global tables
-	*base_pd_ptr = (pd_t *) base_ptr;
-	pte_ind = 0;
-	for(; pte_ind < 4; pte_ind++, base_pd_ptr+=sizeof(struct pd_t)) {
-		base_pd_ptr->pt_base = ((1024 + pte_ind) * 4096) + 1;
-	}
-
 	// enable paging
 	enable_paging();
 
@@ -251,6 +206,11 @@ sysinit()
 	pptr->pargs = 0;
 	pptr->pprio = 0;
 	currpid = NULLPROC;
+	
+	/*PSP: global page tables and outer table for nullproc*/
+	create_global_pg_tables();
+	create_null_proc_pd();
+	pptr->pdbr = ((1023 * 4096) + 1);	
 
 	for (i=0 ; i<NSEM ; i++) {	/* initialize semaphores */
 		(sptr = &semaph[i])->sstate = SFREE;
@@ -318,3 +278,55 @@ long sizmem()
 	}
 	return npages;
 }
+
+/* PSP: creating global page tables and outer directory */
+void create_global_pg_tables() {
+        // assigning the first FF PTE to the base ptr
+        // TODO: not an addr but just an int
+	struct pt_t *base_ptr = (pt_t *)((1024 * 4096) + 1);
+        unsigned int page_no = 0;
+        for (; page_no < N_GLOBAL_PT; page_no++) {
+                unsigned int pte_ind = 0;
+                for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_ptr+=sizeof(struct pt_t)) {
+                        base_ptr->pt_pres = 1;
+                        base_ptr->pt_write = 1;
+                        base_ptr->pt_user = 0;
+                        base_ptr->pt_pwt = 0;
+                        base_ptr->pt_pcd = 0;
+                        base_ptr->pt_acc = 0;
+                        base_ptr->pt_dirty = 0;
+                        base_ptr->pt_mbz = 0;
+                        base_ptr->pt_global = 1;
+                        base_ptr->pt_avail = 0; //TODO: not sure
+                        // base_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pt_t);
+                        // mapping the global tables
+                        // TODO: this is not address but just int 
+                        base_ptr->pt_base = (pt_pt *)pte_ind * (page_no + 1) * 4096;
+		}
+	}
+}
+
+void create_null_proc_pd() {
+ 	struct pd_t *base_pd_ptr = (pd_t *)((1023 * 4096) + 1);
+        pte_ind = 0;
+        for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_pd_ptr+=sizeof(struct pd_t)) {
+                base_pd_ptr->pd_pres = 1;
+                base_pd_ptr->pd_write = 1;
+                base_pd_ptr->pd_user = 0;
+                base_pd_ptr->pd_pwt = 0;
+                base_pd_ptr->pd_pcd = 0;
+                base_pd_ptr->pd_acc = 0;
+                base_pd_ptr->pd_mbz = 0;
+                base_pd_ptr->fmb = 0;
+                base_pd_ptr->pd_global = 0;
+                base_pd_ptr->pt_avail = 0; // TODO:not sure
+                //base_pd_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pd_t);
+                }
+                // mapping NULL proc outer table to global tables
+                *base_pd_ptr = (pd_t *) base_ptr;
+                pte_ind = 0;
+                for(; pte_ind < 4; pte_ind++, base_pd_ptr+=sizeof(struct pd_t)) {
+			base_pd_ptr->pt_base = ((1024 + pte_ind) * 4096) + 1;
+          }
+}
+
