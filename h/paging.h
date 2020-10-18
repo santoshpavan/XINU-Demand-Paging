@@ -102,6 +102,8 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define NOT_PRIVATE	0
 #define IS_PRIVATE	1
 #define PF_INTERRUPT	14
+#define DIRTY		1
+#define NOT_DIRTY	0
 
 /* PSP: system calls for frames */
 SYSCALL init_frm();
@@ -126,3 +128,6 @@ void write_cr3(unsigned long);
 void write_cr4(unsigned long);
 void enable_paging();
 
+/* ISR - Page Fault Handler */
+void pfintr(void);
+extern long pferrcode;

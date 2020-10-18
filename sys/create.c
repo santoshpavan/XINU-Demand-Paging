@@ -67,7 +67,44 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
 	pptr->pnxtkin = BADPID;
 	pptr->pdevs[0] = pptr->pdevs[1] = pptr->ppagedev = BADDEV;
 
-		/* Bottom of stack */
+
+	/* PSP: Create directory */
+	/*
+ 	* Find empty page frame by traversing through frm_tab
+ 	* put directory there
+ 	* frame mapping
+ 	*/
+	int i = 5; //0-4 are held by nullproc and global pg tables
+	for (; i < NFRAMES; i++) {
+		if (frm_tab[i].fr_status == FRM_UNMAPPED) {
+			break;
+		}
+	}
+
+	struct pd_t *base_pd_ptr = (pd_t *)(((i - 1) * 4096) + 1);
+	unsigned int pte_ind = 0;
+        for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_pd_ptr++){
+                base_pd_ptr->pd_pres = 1;
+                base_pd_ptr->pd_write = 1;
+                base_pd_ptr->pd_user = 0;
+                base_pd_ptr->pd_pwt = 0;
+                base_pd_ptr->pd_pcd = 0;
+                base_pd_ptr->pd_acc = 0;
+                base_pd_ptr->pd_mbz = 0;
+                base_pd_ptr->fmb = 0;
+                base_pd_ptr->pd_global = 0;
+                base_pd_ptr->pt_avail = 0; // TODO:not sure
+                //base_pd_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pd_t);
+        }
+	// frame mapping
+	frm_tab[i].fr_status = FRM_MAPPED;
+        frm_tab[i].fr_pid = pid;
+        //frm_tab[i].fr_vpno = ??
+        frm_tab[i].refcnt = 0;
+        frm_tab[i].type = FR_DIR;
+        frm_tab[i].fr_dirty = NOT_DIRTY;
+
+	/* Bottom of stack */
 	*saddr = MAGIC;
 	savsp = (unsigned long)saddr;
 
