@@ -74,16 +74,16 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
  	* put directory there
  	* frame mapping
  	*/
-	int i = 5; //0-4 are held by nullproc and global pg tables
-	for (; i < NFRAMES; i++) {
-		if (frm_tab[i].fr_status == FRM_UNMAPPED) {
+	unsigned int frame_ind = 5; //0-4 taken by null & global pg tables
+	for (; frame_ind < NFRAMES; frame_ind++) {
+		if (frm_tab[frame_ind].fr_status == FRM_UNMAPPED) {
 			break;
 		}
 	}
 
-	struct pd_t *base_pd_ptr = (pd_t *)(((i - 1) * 4096) + 1);
+	struct pd_t *base_pd_ptr = (struct d_t *)(((frame_ind - 1) * 4096) + 1);
 	unsigned int pte_ind = 0;
-        for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_pd_ptr++){
+        for (; pte_ind < MAX_FRAME_SIZE; pte_ind++){
                 base_pd_ptr->pd_pres = 1;
                 base_pd_ptr->pd_write = 1;
                 base_pd_ptr->pd_user = 0;

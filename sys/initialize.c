@@ -321,7 +321,7 @@ void create_global_pg_tables() {
 
 void create_null_proc_pd() {
  	struct pd_t *base_pd_ptr = (pd_t *)((1023 * 4096) + 1);
-        pte_ind = 0;
+        unsigned int pte_ind = 0;
         for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_pd_ptr++){
                 base_pd_ptr->pd_pres = 1;
                 base_pd_ptr->pd_write = 1;
