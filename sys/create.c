@@ -70,39 +70,37 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
 
 	/* PSP: Create directory */
 	/*
- 	* Find empty page frame by traversing through frm_tab
+ 	* Find empty page frame
  	* put directory there
  	* frame mapping
  	*/
-	unsigned int frame_ind = 5; //0-4 taken by null & global pg tables
-	for (; frame_ind < NFRAMES; frame_ind++) {
-		if (frm_tab[frame_ind].fr_status == FRM_UNMAPPED) {
-			break;
-		}
-	}
-
-	struct pd_t *base_pd_ptr = (struct d_t *)(((frame_ind - 1) * 4096) + 1);
-	unsigned int pte_ind = 0;
-        for (; pte_ind < MAX_FRAME_SIZE; pte_ind++){
-                base_pd_ptr->pd_pres = 1;
-                base_pd_ptr->pd_write = 1;
-                base_pd_ptr->pd_user = 0;
-                base_pd_ptr->pd_pwt = 0;
-                base_pd_ptr->pd_pcd = 0;
-                base_pd_ptr->pd_acc = 0;
-                base_pd_ptr->pd_mbz = 0;
-                base_pd_ptr->fmb = 0;
-                base_pd_ptr->pd_global = 0;
-                base_pd_ptr->pt_avail = 0; // TODO:not sure
-                //base_pd_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pd_t);
+	int freeframe_ind = get_frm(NULL);
+    //TODO: if freeframe_ind is SYSERR do something
+    struct fr_map_t *frm_ptr = (struct fr_map_t *)((freeframe_ind * 4096) + 1);
+	frm_ptr->fr_status = FRM_MAPPED;
+	frm_ptr->fr_pid = pid;
+	frm_ptr->refcnt = 0;
+	frm_ptr->type = FR_DIR;
+	frm_ptr->fr_dirty = NOT_DIRTY;
+    struct virt_addr_t = (struct virt_addr_t) (0);
+    frm_ptr->vpnp = (int) virt_addr_t;
+    unsigned int pte_ind = 0;
+    for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
+        struct pd_t *pd_ptr = (struct pd_t *) (frm_ptr + (pte_ind * sizeof(struct pd_t)));
+        pd_ptr->pd_pres = 1;
+        pd_ptr->pd_write = 1;
+        pd_ptr->pd_user = 0;
+        pd_ptr->pd_pwt = 0;
+        pd_ptr->pd_pcd = 0;
+        pd_ptr->pd_acc = 0;
+        pd_ptr->pd_mbz = 0;
+        pd_ptr->fmb = 0;
+        pd_ptr->pd_global = 0;
+        pd_ptr->pt_avail = 0;
+        if (pte_ind < 4) {
+            pd_ptr->pd_base = (unsigned int)(((1025 + pte_ind) * 4096) + 1);
         }
-	// frame mapping
-	frm_tab[i].fr_status = FRM_MAPPED;
-        frm_tab[i].fr_pid = pid;
-        //frm_tab[i].fr_vpno = ??
-        frm_tab[i].refcnt = 0;
-        frm_tab[i].type = FR_DIR;
-        frm_tab[i].fr_dirty = NOT_DIRTY;
+   	}
 
 	/* Bottom of stack */
 	*saddr = MAGIC;
