@@ -11,7 +11,7 @@
 SYSCALL init_frm()
 {
 	kprintf("---init frame!\n");
-  // pointing to the 1024th frame beginning
+    // pointing to the 1024th page beginning
 	struct fr_map_t *frm_tab = (fr_map_t *)(1024 * 4096 + 1);
 	//struct fr_map_t frm_tab[NFRAMES];
 	//frm_tab = fr_base_ptr;

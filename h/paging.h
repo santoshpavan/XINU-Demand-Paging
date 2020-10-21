@@ -46,7 +46,7 @@ typedef struct{
   int bs_vpno;				/* starting virtual page number */
   int bs_npages;			/* no of pages in the store used*/
   int bs_sem;				/* semaphore mechanism ?	*/
-  int pvt;				/* PSP:BS used for private heap?*/
+  int pvt;				    /* PSP:BS used for private heap?*/
 } bs_map_t;
 
 typedef struct{
@@ -73,19 +73,19 @@ SYSCALL release_bs(bsd_t);
 SYSCALL read_bs(char *, bsd_t, int);
 SYSCALL write_bs(char *, bsd_t, int);
 
-#define NBPG		4096	/* number of bytes per page	*/
-#define FRAME0		1024	/* zero-th frame		*/
-#define NFRAMES 	1024	/* number of frames		*/
+#define NBPG		    4096	/* number of bytes per page	*/
+#define FRAME0		    1024	/* zero-th frame		*/
+#define NFRAMES 	    1024	/* number of frames		*/
 
 #define FRM_UNMAPPED	0
-#define FRM_MAPPED	1
+#define FRM_MAPPED	    1
 
-#define FR_PAGE		0
-#define FR_TBL		1
-#define FR_DIR		2
+#define FR_PAGE		    0
+#define FR_TBL		    1
+#define FR_DIR		    2
 
-#define SC 		3
-#define AGING 		4
+#define SC 		        3
+#define AGING 		    4
 
 #define BACKING_STORE_BASE	0x00800000
 #define BACKING_STORE_UNIT_SIZE 0x00100000
@@ -95,13 +95,19 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define MAX_BST_SIZE    256     /* BST has max 256 entries      */
 #define MAX_FRAME_SIZE  1024    /* Page has max 1024 entries    */
 #define N_GLOBAL_PT     4       /* number of global page tables */
-#define BS_UNMAPPED	0
-#define BS_MAPPED	1
-#define NOT_PRIVATE	0
-#define IS_PRIVATE	1
+#define BS_UNMAPPED	    0
+#define BS_MAPPED	    1
 #define PF_INTERRUPT	14
-#define DIRTY		1
-#define NOT_DIRTY	0
+#define DIRTY		    1
+#define NOT_DIRTY	    0
+
+#ifndef NOT_PRIVATE
+#define NOT_PRIVATE	    0
+#endif
+
+#ifndef IS_PRIVATE
+#define IS_PRIVATE	    1
+#endif
 
 /* PSP: system calls for frames */
 SYSCALL init_frm();
@@ -126,6 +132,8 @@ void write_cr3(unsigned long);
 void write_cr4(unsigned long);
 void enable_paging();
 
-/* ISR - Page Fault Handler */
+/* PSP: ISR - Page Fault Handler */
 void pfintr(void);
 extern long pferrcode;
+
+extern page_replace_policy;

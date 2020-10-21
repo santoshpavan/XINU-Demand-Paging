@@ -11,8 +11,9 @@
  */
 SYSCALL init_bsm()
 {
+    struct bs_map_t *bsm_tab = (struct bs_map_t *)BACKING_STORE_BASE;
 	// there are 8 entries in bsm_tab
-	bs_map_t bsm_tab[NBSM];
+	//bs_map_t bsm_tab[NBSM];
 	int i = 0;
 	for (; i < NBSM; i++) {
 		bsm_tab[i].bs_status = BSM_UNMAPPED;
@@ -51,9 +52,9 @@ SYSCALL free_bsm(int i)
 {
 	// called when the BS is private and reset everything
 	bsm_tab[i].bs_status = BSM_UNMAPPED;
-        bsm_tab[i].bs_pid = -1;
-        bsm_tab[i].bs_npages = 0;
-        bsm_tab[i].pvt = NOT_PRIVATE;
+    bsm_tab[i].bs_pid = -1;
+    bsm_tab[i].bs_npages = 0;
+    bsm_tab[i].pvt = NOT_PRIVATE;
 }
 
 /*-------------------------------------------------------------------------
@@ -62,6 +63,29 @@ SYSCALL free_bsm(int i)
  */
 SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
 {
+    /*
+    traverse through the bsmtab
+    if the proc is private only consider private bs with the same pid
+    else consider shared bs and traverse all of their entries
+    */
+    if (proctab[currpid].pvtproc == IS_PRIVATE) {
+        int i = 0;
+        for (; i < NBSM; i++) {
+            if (bsm_tab[i].bs_status == BS_MAPPED && bsm_tab[i].pvt == IS_PRIVATE && bsm_tab[i].bs_pid == pid) {
+                
+            }
+        }
+    }
+    else {
+        int i = 0;
+        for (; i < NBSM; i++) {
+            if (bsm_tab[i].bs_status == BS_MAPPED && bsm_tab[i].pvt == NOT_PRIVATE && bsm_tab[i].bs_pid == pid) {
+                
+            }
+        }
+    }
+    
+    return SYSERR;
 }
 
 
@@ -73,9 +97,9 @@ SYSCALL bsm_map(int pid, int vpno, int source, int npages)
 {
 	// TODO: map all the vpno of size npages
 	bsm_tab[source].bs_status = BS_MAPPED;
-        bsm_tab[source].bs_pid = currpid;
-        bsm_tab[source].bs_npages = npages;
-        bsm_tab[source].bs_vpno = virtpage;
+    bsm_tab[source].bs_pid = pid;
+    bsm_tab[source].bs_npages = npages;
+    bsm_tab[source].bs_vpno = vpno;
 	return OK;
 }
 

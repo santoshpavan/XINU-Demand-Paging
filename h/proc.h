@@ -67,19 +67,27 @@ struct	pentry	{
 	int	pwaitret;
 
 /* for process scheduling*/
-        int     ppolicy;                /* process scheduling policy    */
-        int     ppi;                    /* priority value in psp        */
-        int     prate;                  /* rate value in psp            */
+    int     ppolicy;                /* process scheduling policy    */
+    int     ppi;                    /* priority value in psp        */
+    int     prate;                  /* rate value in psp            */
 
 /* for demand paging */
-        unsigned long pdbr;             /* PDBR                         */
-        int     store;                  /* backing store for vheap      */
-        int     vhpno;                  /* starting pageno for vheap    */
-        int     vhpnpages;              /* vheap size                   */
-        struct mblock *vmemlist;        /* vheap list              	*/
-	int	pvtproc;		/* PSP: proc with pheap		*/
+    unsigned long pdbr;             /* PDBR                         */
+    int     store;                  /* backing store for vheap      */
+    int     vhpno;                  /* starting pageno for vheap    */
+    int     vhpnpages;              /* vheap size                   */
+    struct mblock *vmemlist;        /* vheap list              	*/
+	int	pvt;		                /* PSP: proc with pheap		*/
 };
 
+/* PSP: constants for processes private */
+#ifndef NOT_PRIVATE
+#define NOT_PRIVATE	0
+#endif
+
+#ifndef IS_PRIVATE
+#define IS_PRIVATE	1
+#endif
 
 extern	struct	pentry proctab[];
 extern	int	numproc;		/* currently active processes	*/
