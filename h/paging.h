@@ -5,7 +5,6 @@ typedef unsigned int	 bsd_t;
 /* Structure for a page directory entry */
 
 typedef struct {
-
   unsigned int pd_pres	: 1;		/* page table present?		*/
   unsigned int pd_write : 1;		/* page is writable?		*/
   unsigned int pd_user	: 1;		/* is use level protection?	*/
@@ -22,7 +21,6 @@ typedef struct {
 /* Structure for a page table entry */
 
 typedef struct {
-
   unsigned int pt_pres	: 1;		/* page is present?		*/
   unsigned int pt_write : 1;		/* page is writable?		*/
   unsigned int pt_user	: 1;		/* is use level protection?	*/
@@ -60,7 +58,7 @@ typedef struct{
   int fr_dirty;
   //struct pd_t;			/* PSP: linking frame and pd_t	*/
   //struct pt_t;			/* PSP: linking frame and pd_d	*/
-}fr_map_t;
+} fr_map_t;
 
 extern bs_map_t bsm_tab[];
 extern fr_map_t frm_tab[];

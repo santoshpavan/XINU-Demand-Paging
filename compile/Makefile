@@ -529,16 +529,16 @@ signal.o: ../sys/signal.c /usr/include/stdc-predef.h ../h/conf.h \
 signaln.o: ../sys/signaln.c /usr/include/stdc-predef.h ../h/conf.h \
  ../h/kernel.h ../h/systypes.h ../h/mem.h ../h/proc.h ../h/q.h ../h/sem.h \
  ../h/stdio.h
-sleep.o: ../sys/sleep.c /usr/include/stdc-predef.h ../h/conf.h \
- ../h/kernel.h ../h/systypes.h ../h/mem.h ../h/proc.h ../h/q.h \
- ../h/sleep.h ../h/stdio.h
-sleep10.o: ../sys/sleep10.c /usr/include/stdc-predef.h ../h/conf.h \
+sleep1000.o: ../sys/sleep1000.c /usr/include/stdc-predef.h ../h/conf.h \
  ../h/kernel.h ../h/systypes.h ../h/mem.h ../h/proc.h ../h/q.h \
  ../h/sleep.h ../h/stdio.h
 sleep100.o: ../sys/sleep100.c /usr/include/stdc-predef.h ../h/conf.h \
  ../h/kernel.h ../h/systypes.h ../h/mem.h ../h/proc.h ../h/q.h \
  ../h/sleep.h ../h/stdio.h
-sleep1000.o: ../sys/sleep1000.c /usr/include/stdc-predef.h ../h/conf.h \
+sleep10.o: ../sys/sleep10.c /usr/include/stdc-predef.h ../h/conf.h \
+ ../h/kernel.h ../h/systypes.h ../h/mem.h ../h/proc.h ../h/q.h \
+ ../h/sleep.h ../h/stdio.h
+sleep.o: ../sys/sleep.c /usr/include/stdc-predef.h ../h/conf.h \
  ../h/kernel.h ../h/systypes.h ../h/mem.h ../h/proc.h ../h/q.h \
  ../h/sleep.h ../h/stdio.h
 sreset.o: ../sys/sreset.c /usr/include/stdc-predef.h ../h/conf.h \
