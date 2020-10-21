@@ -186,14 +186,11 @@ sysinit()
 	    init_dev(i);
 	}
 #endif
-	
-	// PSP: ISR: Page Fault Handler
- 	set_evec(PF_INTERRUPT + IRQBASE, pfintr);
 
 	/* PSP: initialize backing store tables - paging/bsm.c */
-        init_bsm();
-        /* PSP: initialize frames */
-        init_frm();
+    init_bsm();
+    /* PSP: initialize frames */
+    init_frm();
 
 	pptr = &proctab[NULLPROC];	/* initialize null process entry */
 	pptr->pstate = PRCURR;
@@ -215,11 +212,14 @@ sysinit()
 	/*PSP: global page tables and outer table for nullproc*/
 	create_global_pg_tables();
 	create_null_proc_pd();
-	pptr->pdbr = ((1023 * 4096) + 1);	
+	pptr->pdbr = (unsigned long*)((1024 * 4096) + 1);	
 	
-	// enable paging
+ 	// PSP: ISR- Page Fault Handler
+ 	set_evec(PF_INTERRUPT, pfintr);
+ 
+	// PSP: enable paging
 	enable_paging();
-
+ 
 	for (i=0 ; i<NSEM ; i++) {	/* initialize semaphores */
 		(sptr = &semaph[i])->sstate = SFREE;
 		sptr->sqtail = 1 + (sptr->sqhead = newqueue());
@@ -283,71 +283,60 @@ long sizmem()
 
 /* PSP: creating global page tables and outer directory */
 void create_global_pg_tables() {
-        // assigning the first FF PTE to the base ptr
-        // TODO: not an addr but just an int
-	struct pt_t *base_ptr = (pt_t *)((1024 * 4096) + 1);
-        unsigned int page_no = 0;
-        for (; page_no < N_GLOBAL_PT; page_no++) {
-                unsigned int pte_ind = 0;
-                for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_ptr++) {
-                        base_ptr->pt_pres = 1;
-                        base_ptr->pt_write = 1;
-                        base_ptr->pt_user = 0;
-                        base_ptr->pt_pwt = 0;
-                        base_ptr->pt_pcd = 0;
-                        base_ptr->pt_acc = 0;
-                        base_ptr->pt_dirty = 0;
-                        base_ptr->pt_mbz = 0;
-                        base_ptr->pt_global = 1;
-                        base_ptr->pt_avail = 0; //TODO: not sure
-                        // base_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pt_t);
-                        // mapping the global tables
-                        // TODO: this is not address but just int 
-                        base_ptr->pt_base = (pt_pt *)pte_ind * (page_no + 1) * 4096;
-		}
-	}
-
-	// frame mapping
-	page_no = 1; // 0 has nullproc directory
-	for (; page_no < N_GLOBAL_PT + 1; page_no++) {
-		frm_tab[page_no].fr_status = FRM_MAPPED;
-		frm_tab[page_no].fr_pid = 51; // all the processes
-		//frm_tab[page_no].fr_vpno = ??
-		frm_tab[page_no].refcnt = 0;
-		frm_tab[page_no].type = FR_DIR;
-		frm_tab[page_no].fr_dirty = NOT_DIRTY;
-	}	
+    /* 
+    update frame variables
+    in the same mem location update the PTE variables
+    */
+    unsigned int page_no = 0;
+    for (; page_no < N_GLOBAL_PT; page_no++) {
+        struct fr_map_t *frm_ptr = (struct fr_map_t *)(((1025 + page_no) * 4096) + 1);
+        frm_ptr->fr_status = FRM_MAPPED;
+        frm_ptr->.fr_pid = 100; // all the processes
+    	frm_ptr->refcnt = 0;
+    	frm_ptr->type = FR_DIR;
+    	frm_ptr->fr_dirty = NOT_DIRTY;
+        unsigned int pte_ind = 0;
+        for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
+              struct pt_t *pt_ptr = (struct pt_t *) (frm_ptr + pte_ind * sizeof(struct pt_t));
+              pt_ptr->pt_pres = 1;
+              pt_ptr->pt_write = 1;
+              pt_ptr->pt_user = 0;
+              pt_ptr->pt_pwt = 0;
+              pt_ptr->pt_pcd = 0;
+              pt_ptr->pt_acc = 0;
+              pt_ptr->pt_dirty = 0;
+              pt_ptr->pt_mbz = 0;
+              pt_ptr->pt_global = 1;
+              pt_ptr->pt_avail = 0;
+              pt_ptr->pt_base = (unsigned int *)(pte_ind * (page_no + 1) * 4096);
+        }
+    }
 }
 
 void create_null_proc_pd() {
- 	struct pd_t *base_pd_ptr = (pd_t *)((1023 * 4096) + 1);
-        unsigned int pte_ind = 0;
-        for (; pte_ind < MAX_FRAME_SIZE; pte_ind++, base_pd_ptr++){
-                base_pd_ptr->pd_pres = 1;
-                base_pd_ptr->pd_write = 1;
-                base_pd_ptr->pd_user = 0;
-                base_pd_ptr->pd_pwt = 0;
-                base_pd_ptr->pd_pcd = 0;
-                base_pd_ptr->pd_acc = 0;
-                base_pd_ptr->pd_mbz = 0;
-                base_pd_ptr->fmb = 0;
-                base_pd_ptr->pd_global = 0;
-                base_pd_ptr->pt_avail = 0; // TODO:not sure
-                //base_pd_ptr->pt_base = base_ptr - pte_offset * sizeof(struct pd_t);
-     	}
-	// mapping NULL proc outer table to global tables
-     	*base_pd_ptr = (pd_t *) base_ptr;
-      	pte_ind = 0;
-     	for(; pte_ind < 4; pte_ind++, base_pd_ptr++) {
-		base_pd_ptr->pt_base = ((1024 + pte_ind) * 4096) + 1;
-     	}
-
-	// frame mapping
-	frm_tab[0].fr_status = FRM_MAPPED;
-	frm_tab[0].fr_pid = 0;
-	//frm_tab[0].fr_vpno = ??
-	frm_tab[0].refcnt = 0;
-	frm_tab[0].type = FR_DIR;
-	frm_tab[0].fr_dirty = NOT_DIRTY;
+    struct fr_map_t *frm_ptr = (struct fr_map_t *)((1024 * 4096) + 1);
+	frm_ptr->fr_status = FRM_MAPPED;
+	frm_ptr->fr_pid = 0;
+	frm_ptr->refcnt = 0;
+	frm_ptr->type = FR_DIR;
+	frm_ptr->fr_dirty = NOT_DIRTY;
+    struct virt_addr_t = (struct virt_addr_t) (0);
+    frm_ptr->vpnp = (int) virt_addr_t;
+    unsigned int pte_ind = 0;
+    for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
+        struct pd_t *pd_ptr = (struct pd_t *) (frm_ptr + (pte_ind * sizeof(struct pd_t)));
+        pd_ptr->pd_pres = 1;
+        pd_ptr->pd_write = 1;
+        pd_ptr->pd_user = 0;
+        pd_ptr->pd_pwt = 0;
+        pd_ptr->pd_pcd = 0;
+        pd_ptr->pd_acc = 0;
+        pd_ptr->pd_mbz = 0;
+        pd_ptr->fmb = 0;
+        pd_ptr->pd_global = 0;
+        pd_ptr->pt_avail = 0;
+        if (pte_ind < 4) {
+            pd_ptr->pd_base = (unsigned int)(((1025 + pte_ind) * 4096) + 1);
+        }
+   	}
 }
-
