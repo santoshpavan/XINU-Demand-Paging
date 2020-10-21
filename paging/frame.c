@@ -11,6 +11,7 @@
 SYSCALL init_frm()
 {
 	kprintf("---init frame!\n");
+  // pointing to the 1024th frame beginning
 	struct fr_map_t *frm_tab = (fr_map_t *)(1024 * 4096 + 1);
 	//struct fr_map_t frm_tab[NFRAMES];
 	//frm_tab = fr_base_ptr;
@@ -29,8 +30,30 @@ SYSCALL init_frm()
  */
 SYSCALL get_frm(int* avail)
 {
-  kprintf("To be implemented!\n");
-  return OK;
+  kprintf("---getting frame!!!\n");
+  
+  /*
+  perform a linear search in the frm_tab to look for unmapped.
+  after getting add to the global data structure based on the replacement policy
+  */
+  // flag to check the need for replacement
+  // int found_empty = 0;
+  for (int i = 0; i < NFRAMES; i++) {
+    if (frm_tab[i] == UNMAPPED) {
+      // available
+      // found_empty = 1;
+      if (page_replace_policy == SC) {
+        // add to the circular queue
+      }
+      else {
+        // add to FIFO queue
+      }
+      return i;
+    }
+  }
+  // if not found
+  return SYSERR;
+  //return OK;
 }
 
 /*-------------------------------------------------------------------------
@@ -39,8 +62,8 @@ SYSCALL get_frm(int* avail)
  */
 SYSCALL free_frm(int i)
 {
-
-  kprintf("To be implemented!\n");
+  kprintf("---Freeing frame!\n");
+  frm_tab[i] = FRM_UNMAPPED;
   return OK;
 }
 
