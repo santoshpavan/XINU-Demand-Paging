@@ -9,17 +9,16 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
 	/* mapping done in xmmap */
 	kprintf("---get_bs!\n");
 	int bs_ind = (int)bs_id;
-	if (	npages <= 0 || npages > MAX_BST_SIZE ||
-		bs_ind < 0 || bs_ind >= NBSM ) {
+	if (npages <= 0 || npages > MAX_BST_SIZE || bs_ind < 0 || bs_ind >= NBSM ) {
 		return SYSERR
 	}
 	if (proctab[currpid].pvtproc == IS_PRIVATE) {
-                //if (bsm_tab[bs_ind].bs_status == BS_MAPPED)
-                        return SYSERR;
-        }
+        //if (bsm_tab[bs_ind].bs_status == BS_MAPPED)
+        return SYSERR;
+    }
 	//int bs_ind = (int)bs_id;
 	if (bsm_tab[bs_ind].bs_status == BS_MAPPED) {
-		return bsm_tab[bs_ind].bs_npages;
+		return (MAX_BST_SIZE - bsm_tab[bs_ind].bs_npages);
 	}
 	return npages;
 }
