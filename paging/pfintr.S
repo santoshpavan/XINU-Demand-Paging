@@ -6,11 +6,11 @@ pferrcode: .long 0
            .globl  pfintr,pferrcode 
 pfintr:
 	pop pferrcode
-	pushfd
+	pushfl
 	cli
-	pushad
-	pfintr
-	popad
+	pushal
+	call pfint
+	popal
 	sti
-	popfd
-	ret
+	popfl
+	iret
