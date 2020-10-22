@@ -13,13 +13,10 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
 		return SYSERR
 	}
 	if (proctab[currpid].pvtproc == IS_PRIVATE) {
-        //if (bsm_tab[bs_ind].bs_status == BS_MAPPED)
         return SYSERR;
     }
-	//int bs_ind = (int)bs_id;
 	if (bsm_tab[bs_ind].bs_status == BS_MAPPED) {
 		return (MAX_BST_SIZE - bsm_tab[bs_ind].bs_npages);
 	}
 	return npages;
 }
-

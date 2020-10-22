@@ -12,8 +12,8 @@ SYSCALL init_frm()
 {
 	kprintf("---init frame!\n");
     // pointing to the 1024th page beginning
-	struct fr_map_t *frm_tab = (fr_map_t *)(1024 * 4096 + 1);
-	//struct fr_map_t frm_tab[NFRAMES];
+	//struct fr_map_t *frm_tab = (fr_map_t *)(1024 * 4096 + 1);
+	struct fr_map_t frm_tab[NFRAMES];
 	//frm_tab = fr_base_ptr;
 	int i = 0;
 	for(; i < NFRAMES; i++) {
@@ -37,19 +37,22 @@ SYSCALL get_frm(int* avail)
   after getting add to the global data structure based on the replacement policy
   */
   // flag to check the need for replacement
-  // int found_empty = 0;
-  for (int i = 0; i < NFRAMES; i++) {
-    if (frm_tab[i] == UNMAPPED) {
-      // available
-      // found_empty = 1;
-      if (page_replace_policy == SC) {
-        // add to the circular queue
+  if (avail == NULL) {
+      for (int i = 0; i < NFRAMES; i++) {
+        if (frm_tab[i] == UNMAPPED) {
+          // available
+          if (page_replace_policy == SC) {
+            // add to the circular queue
+          }
+          else {
+            // add to FIFO queue
+          }
+          return i;
+        }
       }
-      else {
-        // add to FIFO queue
-      }
-      return i;
-    }
+  }
+  else {
+    // to be used during page replacement when avail has a value
   }
   // if not found
   return SYSERR;

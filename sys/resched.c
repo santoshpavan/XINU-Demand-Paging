@@ -83,6 +83,7 @@ int	resched()
 #ifdef	DEBUG
 	PrintSaved(nptr);
 #endif
+
 	/* PSP: Writing CR3 Register */
 	write_cr3(nptr->pdbr);	
 	ctxsw(&optr->pesp, optr->pirmask, &nptr->pesp, nptr->pirmask);

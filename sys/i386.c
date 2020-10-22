@@ -137,7 +137,7 @@ setsegs()
 /*
 	maxaddr = (char *)(npages * NBPG - 1);
 */
-	maxaddr = (char *)( 1024 * NBPG - 1 ); /* 10M size */
+	maxaddr = (char *)( 1024 * NBPG ); /* 10M size */
 				 	      /* the top 10M is used for backing store */
 	/* PSP: Freeframes address range */
 	maxffaddr = (char *)( 2048 * NBPG - 1 );

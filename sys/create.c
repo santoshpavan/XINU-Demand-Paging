@@ -10,6 +10,7 @@
 #include <paging.h>
 
 LOCAL int newpid();
+void create_directory(void);
 
 /*------------------------------------------------------------------------
  *  create  -  create a process to start running a procedure
@@ -67,45 +68,7 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
 	pptr->pnxtkin = BADPID;
 	pptr->pdevs[0] = pptr->pdevs[1] = pptr->ppagedev = BADDEV;
 
-
-	/* PSP: Create directory */
-	/*
- 	* Find empty page frame
- 	* put directory there
- 	* frame mapping
- 	*/
-	int freeframe_ind = get_frm(NULL);
-    //TODO: if freeframe_ind is SYSERR do something
-    struct fr_map_t *frm_ptr = (struct fr_map_t *)((freeframe_ind * 4096) + 1);
-	frm_ptr->fr_status = FRM_MAPPED;
-	frm_ptr->fr_pid = pid;
-	frm_ptr->refcnt = 0;
-	frm_ptr->type = FR_DIR;
-	frm_ptr->fr_dirty = NOT_DIRTY;
-    
-    pptr->pdbr = (unsigned long) frm_ptr;
-    pptr->ppolicy = page_replace_policy;
-    
-    struct virt_addr_t = (struct virt_addr_t) (0);
-    frm_ptr->vpnp = (int) virt_addr_t;
-    unsigned int pte_ind = 0;
-    for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
-        struct pd_t *pd_ptr = (struct pd_t *) (frm_ptr + (pte_ind * sizeof(struct pd_t)));
-        pd_ptr->pd_pres = 0;
-        pd_ptr->pd_write = 1;
-        pd_ptr->pd_user = 0;
-        pd_ptr->pd_pwt = 0;
-        pd_ptr->pd_pcd = 0;
-        pd_ptr->pd_acc = 0;
-        pd_ptr->pd_mbz = 0;
-        pd_ptr->fmb = 0;
-        pd_ptr->pd_global = 0;
-        pd_ptr->pt_avail = 0;
-        if (pte_ind < 4) {
-            pd_ptr->pd_pres = 1;
-            pd_ptr->pd_base = (unsigned int)(((1025 + pte_ind) * 4096) + 1);
-        }
-   	}
+	create_directory();
 
 	/* Bottom of stack */
 	*saddr = MAGIC;
@@ -157,4 +120,47 @@ LOCAL int newpid()
 			return(pid);
 	}
 	return(SYSERR);
+}
+
+/* PSP: Create directory */
+void create_directory(void) {
+    /*
+ 	* Find empty page frame
+ 	* put directory there
+ 	* frame mapping
+ 	*/
+	int freeframe_ind = get_frm(NULL);
+    if (freeframe_ind == SYSERR) {
+        //page swap
+    }
+    struct fr_map_t *frm_ptr = &frm_tab[freeframe_ind];
+	frm_ptr->fr_status = FRM_MAPPED;
+	frm_ptr->fr_pid = pid;
+	frm_ptr->refcnt = 0;
+	frm_ptr->type = FR_DIR;
+	frm_ptr->fr_dirty = NOT_DIRTY;
+    
+    pptr->pdbr = (unsigned long) (((1024 * freeframe_ind) * 4096) + 1);
+    pptr->ppolicy = page_replace_policy;
+    
+    struct virt_addr_t = (struct virt_addr_t) (0);
+    frm_ptr->vpnp = (int) virt_addr_t;
+    unsigned int pte_ind = 0;
+    for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
+        struct pd_t *pd_ptr = (struct pd_t *) (pptr->pdbr + (pte_ind * sizeof(struct pd_t)));
+        pd_ptr->pd_pres = 0;
+        pd_ptr->pd_write = 1;
+        pd_ptr->pd_user = 0;
+        pd_ptr->pd_pwt = 0;
+        pd_ptr->pd_pcd = 0;
+        pd_ptr->pd_acc = 0;
+        pd_ptr->pd_mbz = 0;
+        pd_ptr->fmb = 0;
+        pd_ptr->pd_global = 0;
+        pd_ptr->pt_avail = 0;
+        if (pte_ind < 4) {
+            pd_ptr->pd_pres = 1;
+            pd_ptr->pd_base = (unsigned int)(((1025 + pte_ind) * 4096) + 1);
+        }
+   	}
 }

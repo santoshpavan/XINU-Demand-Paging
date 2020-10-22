@@ -29,10 +29,10 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 					/* array in the code)		*/
 {
 	kprintf("----CREATING PROCESS - vcreate\n");
-        // create a process using create
-	int pid = create(procaddr,ssize,priority,name,nargs,args);
-
-        STATWORD        ps;
+    int pid = create(procaddr,ssize,priority,name,nargs,args);
+    if (pid == SYSERR)
+        return SYSERR;
+    STATWORD        ps;
 	disable(ps);
 	/*
  	* get bs from get_bsm
@@ -46,7 +46,7 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	proctab[pid].store = bs_id;
 	proctab[pid].vhpnpages = hsize;
 	//proctab[pid].vhpno = ;// starting pageno for heap-impl in get_bsm	
-	bsm_map(pid, vpno, bs_id, hsize);
+	bsm_map(pid, procaddr>>12, bs_id, hsize);
 
 	restore(ps);	
 	return OK;

@@ -11,14 +11,15 @@
  */
 SYSCALL init_bsm()
 {
-    struct bs_map_t *bsm_tab = (struct bs_map_t *)BACKING_STORE_BASE;
+    //struct bs_map_t *bsm_tab = (struct bs_map_t *)BACKING_STORE_BASE;
 	// there are 8 entries in bsm_tab
-	//bs_map_t bsm_tab[NBSM];
+	struct bs_map_t bsm_tab[NBSM];
 	int i = 0;
 	for (; i < NBSM; i++) {
 		bsm_tab[i].bs_status = BSM_UNMAPPED;
 		bsm_tab[i].bs_pid = -1;
 		bsm_tab[i].bs_npages = 0;
+        bsm_tab[i].bs_vpno = -1;
 		bsm_tab[i].pvt = NOT_PRIVATE;
 	}
 	return OK;
@@ -95,7 +96,8 @@ SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
  */
 SYSCALL bsm_map(int pid, int vpno, int source, int npages)
 {
-	// TODO: map all the vpno of size npages
+    if (pid != currpid)
+        return SYSERR;
 	bsm_tab[source].bs_status = BS_MAPPED;
     bsm_tab[source].bs_pid = pid;
     bsm_tab[source].bs_npages = npages;
@@ -104,17 +106,17 @@ SYSCALL bsm_map(int pid, int vpno, int source, int npages)
 }
 
 
-
 /*-------------------------------------------------------------------------
  * bsm_unmap - delete an mapping from bsm_tab
  *-------------------------------------------------------------------------
  */
 SYSCALL bsm_unmap(int pid, int vpno, int flag)
 {
+    if (pid != currpid)
+        return SYSERR;
 	int bs_ind = proctab[pid].store;
 	proctab[pid].store = -1;
 	bsm_tab[bs_ind].bs_status = BSM_UNMAPPED;
 	bsm_tab[bs_ind].pvt = NOT_PRIVATE;
 	return OK;
 }
-

@@ -288,16 +288,17 @@ void create_global_pg_tables() {
     in the same mem location update the PTE variables
     */
     unsigned int page_no = 0;
-    for (; page_no < N_GLOBAL_PT; page_no++) {
-        struct fr_map_t *frm_ptr = (struct fr_map_t *)(((1025 + page_no) * 4096) + 1);
+    for (; page_no < N_GLOBAL_PT + 1; page_no++) {
+        //struct fr_map_t *frm_ptr = (struct fr_map_t *)(((1025 + page_no) * 4096) + 1);
+        struct fr_map_t *frm_ptr = &frm_tab[page_no + 1];
         frm_ptr->fr_status = FRM_MAPPED;
-        frm_ptr->.fr_pid = 100; // all the processes
+        frm_ptr->fr_pid = 100; // all the processes
     	frm_ptr->refcnt = 0;
     	frm_ptr->type = FR_DIR;
     	frm_ptr->fr_dirty = NOT_DIRTY;
         unsigned int pte_ind = 0;
         for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
-              struct pt_t *pt_ptr = (struct pt_t *) (frm_ptr + pte_ind * sizeof(struct pt_t));
+              struct pt_t *pt_ptr = (struct pt_t *) ((((1025 + page_no) * 4096) + 1) + pte_ind * sizeof(struct pt_t));
               pt_ptr->pt_pres = 1;
               pt_ptr->pt_write = 1;
               pt_ptr->pt_user = 0;
@@ -308,14 +309,15 @@ void create_global_pg_tables() {
               pt_ptr->pt_mbz = 0;
               pt_ptr->pt_global = 1;
               pt_ptr->pt_avail = 0;
-              pt_ptr->pt_base = (unsigned int *)(pte_ind * (page_no + 1) * 4096);
+              pt_ptr->pt_base = (unsigned int)(pte_ind * (page_no + 1) * 4096);
         }
     }
 }
 
 void create_null_proc_pd() {
-    struct fr_map_t *frm_ptr = (struct fr_map_t *)((1024 * 4096) + 1);
-	frm_ptr->fr_status = FRM_MAPPED;
+    //struct fr_map_t *frm_ptr = (struct fr_map_t *)((1024 * 4096) + 1);
+	struct fr_map_t *frm_ptr = &frm_tab[0];
+    frm_ptr->fr_status = FRM_MAPPED;
 	frm_ptr->fr_pid = 0;
 	frm_ptr->refcnt = 0;
 	frm_ptr->type = FR_DIR;
@@ -324,7 +326,7 @@ void create_null_proc_pd() {
     frm_ptr->vpnp = (int) virt_addr_t;
     unsigned int pte_ind = 0;
     for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
-        struct pd_t *pd_ptr = (struct pd_t *) (frm_ptr + (pte_ind * sizeof(struct pd_t)));
+        struct pd_t *pd_ptr = (struct pd_t *) ((((1025 + page_no) * 4096) + 1)+ pte_ind * sizeof(struct pd_t));
         pd_ptr->pd_pres = 1;
         pd_ptr->pd_write = 1;
         pd_ptr->pd_user = 0;
