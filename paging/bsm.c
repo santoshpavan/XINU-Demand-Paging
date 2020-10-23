@@ -69,10 +69,13 @@ SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
     if the proc is private only consider private bs with the same pid
     else consider shared bs and traverse all of their entries
     */
+    //TODO: check if vaddr is valid
     if (proctab[currpid].pvtproc == IS_PRIVATE) {
         int i = 0;
         for (; i < NBSM; i++) {
             if (bsm_tab[i].bs_status == BS_MAPPED && bsm_tab[i].pvt == IS_PRIVATE && bsm_tab[i].bs_pid == pid) {
+                *store = i;
+                // TODO: look for specific page based on vaddr
                 
             }
         }
@@ -80,8 +83,8 @@ SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
     else {
         int i = 0;
         for (; i < NBSM; i++) {
-            if (bsm_tab[i].bs_status == BS_MAPPED && bsm_tab[i].pvt == NOT_PRIVATE && bsm_tab[i].bs_pid == pid) {
-                
+            if (bsm_tab[i].bs_status == BS_MAPPED && bsm_tab[i].pvt == NOT_PRIVATE) {
+                // TODO: traverse all and look for it   
             }
         }
     }

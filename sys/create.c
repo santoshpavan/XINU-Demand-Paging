@@ -132,6 +132,7 @@ void create_directory(void) {
 	int freeframe_ind = get_frm(NULL);
     if (freeframe_ind == SYSERR) {
         //page swap
+        freeframe_ind = replace_page();
     }
     struct fr_map_t *frm_ptr = &frm_tab[freeframe_ind];
 	frm_ptr->fr_status = FRM_MAPPED;

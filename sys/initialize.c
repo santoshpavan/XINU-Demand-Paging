@@ -187,11 +187,13 @@ sysinit()
 	}
 #endif
 
-	/* PSP: initialize backing store tables - paging/bsm.c */
+	/* PSP: initializing things */
     init_bsm();
-    /* PSP: initialize frames */
     init_frm();
-
+ 	set_evec(PF_INTERRUPT, pfintr);
+    enable_paging();
+    init_policy_lists();
+    
 	pptr = &proctab[NULLPROC];	/* initialize null process entry */
 	pptr->pstate = PRCURR;
 	for (j=0; j<7; j++)
@@ -212,13 +214,7 @@ sysinit()
 	/*PSP: global page tables and outer table for nullproc*/
 	create_global_pg_tables();
 	create_null_proc_pd();
-	pptr->pdbr = (unsigned long*)((1024 * 4096) + 1);	
-	
- 	// PSP: ISR- Page Fault Handler
- 	set_evec(PF_INTERRUPT, pfintr);
- 
-	// PSP: enable paging
-	enable_paging();
+	pptr->pdbr = (unsigned long)((1024 * 4096) + 1);	
  
 	for (i=0 ; i<NSEM ; i++) {	/* initialize semaphores */
 		(sptr = &semaph[i])->sstate = SFREE;

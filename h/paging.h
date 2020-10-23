@@ -136,4 +136,28 @@ void enable_paging();
 void pfintr(void);
 extern long pferrcode;
 
+/* PSP: the data structures for page replacement */
 extern page_replace_policy;
+int replace_page(void);
+
+// for SC policy
+typedef struct {
+  int ind;
+  struct sc_list* next;
+} sc_list;
+struct sc_list sc_head;
+struct sc_list sc_tail;
+struct sc_list *clock_hand;
+
+// for Aging policy
+typedef struct {
+  int ind;
+  int age;
+  struct ag_list* next;
+} ag_list;
+struct ag_list ag_head;
+struct ag_list ag_tail;
+
+void init_policy_lists(void);
+void add_sc_list(int frame_ind);
+void add_ag_list(int frame_ind);

@@ -30,33 +30,25 @@ SYSCALL init_frm()
  */
 SYSCALL get_frm(int* avail)
 {
-  kprintf("---getting frame!!!\n");
-  
-  /*
-  perform a linear search in the frm_tab to look for unmapped.
-  after getting add to the global data structure based on the replacement policy
-  */
-  // flag to check the need for replacement
-  if (avail == NULL) {
-      for (int i = 0; i < NFRAMES; i++) {
+    kprintf("---getting frame!!!\n");
+    /*
+    perform a linear search in the frm_tab to look for unmapped.
+    after getting add to the global data structure based on the replacement policy
+    */
+    // flag to check the need for replacement
+    for (int i = 0; i < NFRAMES; i++) {
         if (frm_tab[i] == UNMAPPED) {
-          // available
-          if (page_replace_policy == SC) {
-            // add to the circular queue
-          }
-          else {
-            // add to FIFO queue
-          }
-          return i;
+        *avail = i;
+        if (page_replace_policy == SC) {
+            add_sc_list(i);
         }
-      }
-  }
-  else {
-    // to be used during page replacement when avail has a value
-  }
-  // if not found
+        else {
+            add_ag_list(i);
+        }
+        return OK;
+        }
+    }
   return SYSERR;
-  //return OK;
 }
 
 /*-------------------------------------------------------------------------
@@ -69,4 +61,3 @@ SYSCALL free_frm(int i)
   frm_tab[i] = FRM_UNMAPPED;
   return OK;
 }
-
