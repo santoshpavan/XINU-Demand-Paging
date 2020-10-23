@@ -12,14 +12,15 @@ SYSCALL init_frm()
 {
 	kprintf("---init frame!\n");
     // pointing to the 1024th page beginning
-	//struct fr_map_t *frm_tab = (fr_map_t *)(1024 * 4096 + 1);
 	struct fr_map_t frm_tab[NFRAMES];
-	//frm_tab = fr_base_ptr;
 	int i = 0;
 	for(; i < NFRAMES; i++) {
-		//frm_tab[i] = fr_base_ptr;
 		frm_tab[i].status = FRM_UNMAPPED;
-		fr_base_ptr++;
+        frm_tab[i].fr_pid = -1;			
+        frm_tab[i].fr_vpno = -1;			
+        frm_tab[i].fr_refcnt = 0;			
+        //frm_tab[i].fr_type;				
+        frm_tab[i].fr_dirty = NOT_DIRTY;
 	}
 	return OK;
 }
@@ -35,20 +36,20 @@ SYSCALL get_frm(int* avail)
     perform a linear search in the frm_tab to look for unmapped.
     after getting add to the global data structure based on the replacement policy
     */
-    // flag to check the need for replacement
-    for (int i = 0; i < NFRAMES; i++) {
+    int i = 0;
+    for (; i < NFRAMES; i++) {
         if (frm_tab[i] == UNMAPPED) {
-        *avail = i;
-        if (page_replace_policy == SC) {
-            add_sc_list(i);
-        }
-        else {
-            add_ag_list(i);
-        }
-        return OK;
+            *avail = i;
+            if (grpolicy() == SC) {
+                add_sc_list(i);
+            }
+            else {
+                add_ag_list(i);
+            }
+            return OK;
         }
     }
-  return SYSERR;
+    return SYSERR;
 }
 
 /*-------------------------------------------------------------------------
@@ -57,7 +58,7 @@ SYSCALL get_frm(int* avail)
  */
 SYSCALL free_frm(int i)
 {
-  kprintf("---Freeing frame!\n");
-  frm_tab[i] = FRM_UNMAPPED;
-  return OK;
+    kprintf("---Freeing frame!\n");
+    frm_tab[i] = FRM_UNMAPPED;
+    return OK;
 }

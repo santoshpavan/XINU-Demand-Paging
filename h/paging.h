@@ -135,7 +135,8 @@ void pfintr(void);
 extern long pferrcode;
 
 /* PSP: the data structures for page replacement */
-extern page_replace_policy;
+SYSCALL srpolicy(int);
+SYSCALL grpolicy(void);
 int replace_page(void);
 
 // for SC policy
