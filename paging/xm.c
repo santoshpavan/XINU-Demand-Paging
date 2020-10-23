@@ -12,6 +12,7 @@
  */
 SYSCALL xmmap(int virtpage, bsd_t source, int npages)
 {
+    /* only for non-private */
 	kprintf("---xmmap!\n");
 	
 	int bs_ind = (int) source;
@@ -24,9 +25,9 @@ SYSCALL xmmap(int virtpage, bsd_t source, int npages)
 		return bsm_map(currpid, virtpage, bs_ind, npages);
 	}
 	else {
-		return bsm_tab[source].bs_npages += npages;
+		return bsm_tab[bs_ind].bs_npages += npages;
 	}
-	return OK;
+	return SYSERR;
 }
 
 
@@ -37,12 +38,13 @@ SYSCALL xmmap(int virtpage, bsd_t source, int npages)
  */
 SYSCALL xmunmap(int virtpage)
 {
+    /* only for non-private */
+    //TODO: unmapping for shared stores => partial unmapping
 	kprintf("---xmunmap!\n");
 	int i = 0;
 	for (; i < NBSM; i++) {
 		if (bsm_tab[i].bs_vpno == virtpage) {
-			bsm_unmap(currpid, virtpage, BSM_UNMAPPED);
-			return OK;
+			return bsm_unmap(currpid, virtpage, BSM_UNMAPPED);
 		}
 	}
 
