@@ -65,30 +65,22 @@ SYSCALL free_bsm(int i)
 SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
 {
     /*
-    traverse through the bsmtab
-    if the proc is private only consider private bs with the same pid
-    else consider shared bs and traverse all of their entries
+    traverse through bsm_tab
+        check if vaddr is valid
+    assign store and pageth values    
     */
-    //TODO: check if vaddr is valid
-    if (proctab[currpid].pvtproc == IS_PRIVATE) {
-        int i = 0;
-        for (; i < NBSM; i++) {
-            if (bsm_tab[i].bs_status == BS_MAPPED && bsm_tab[i].pvt == IS_PRIVATE && bsm_tab[i].bs_pid == pid) {
-                *store = i;
-                // TODO: look for specific page based on vaddr
-                
-            }
+    if (vaddr < 0)
+        return SYSERR;
+    int i = 0; 
+    for (; i < NBSM; i++) {
+        struct bs_map_t *mptr = &bsm_tab[i];
+        if (mptr->bs_pid == pid && vaddr <= mptr->bs_npages) {
+            *store = i;
+            // getting vpno from the vaddr
+            *pageth = vaddr>>12;
+            return OK;
         }
     }
-    else {
-        int i = 0;
-        for (; i < NBSM; i++) {
-            if (bsm_tab[i].bs_status == BS_MAPPED && bsm_tab[i].pvt == NOT_PRIVATE) {
-                // TODO: traverse all and look for it   
-            }
-        }
-    }
-    
     return SYSERR;
 }
 

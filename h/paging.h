@@ -56,8 +56,6 @@ typedef struct{
   int fr_refcnt;			/* reference count		*/
   int fr_type;				/* FR_DIR, FR_TBL, FR_PAGE	*/
   int fr_dirty;
-  //struct pd_t;			/* PSP: linking frame and pd_t	*/
-  //struct pt_t;			/* PSP: linking frame and pd_d	*/
 } fr_map_t;
 
 extern bs_map_t bsm_tab[];
@@ -97,9 +95,9 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define N_GLOBAL_PT     4       /* number of global page tables */
 #define BS_UNMAPPED	    0
 #define BS_MAPPED	    1
-#define PF_INTERRUPT	14
 #define DIRTY		    1
 #define NOT_DIRTY	    0
+#define PF_INTERRUPT	14
 
 #ifndef NOT_PRIVATE
 #define NOT_PRIVATE	    0
