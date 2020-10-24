@@ -24,8 +24,10 @@ SYSCALL xmmap(int virtpage, bsd_t source, int npages)
 	if (bsm_tab[bs_ind].bs_status == BS_UNMAPPED) {
 		return bsm_map(currpid, virtpage, bs_ind, npages);
 	}
+    //TODO: not sure
 	else {
-		return bsm_tab[bs_ind].bs_npages += npages;
+		bsm_tab[bs_ind].bs_npages += npages;
+        return OK;
 	}
 	return SYSERR;
 }
