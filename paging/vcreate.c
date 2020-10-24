@@ -41,7 +41,8 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	* do not call xmmap here
 	*/
 	proctab[pid].pvtproc = IS_PRIVATE;
-	int bs_id = get_bsm(NULL);
+	int bs_id;
+    get_bsm(bs_id);
 	bsm_tab[bs_id].pvt = IS_PRIVATE;
 	proctab[pid].store = bs_id;
 	proctab[pid].vhpnpages = hsize;

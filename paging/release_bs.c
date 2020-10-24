@@ -19,10 +19,22 @@ SYSCALL release_bs(bsd_t bs_id) {
 		else
 			return SYSERR;
 	}
-	else {
-		//TODO:might need vmemlist here
+    else {
+		/*
+        traverse through the shared_list in bsm_tab
+        if found the mapping with this procid, then unmap it
+        */
+        struct shared_list *ptr = bsm_tab[bs_ind].fr_pids;
+        struct shared_list *prev = NULL;
+        while (ptr != NULL) {
+            if (ptr->fr_pid == currpid) {
+                // unmapping
+                prev->next = ptr->next;
+                return OK;
+            }
+            prev = ptr;
+            ptr = ptr->next;
+        }
 	}
-
-   	return OK;
+   	return SYSERR;
 }
-

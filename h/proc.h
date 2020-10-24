@@ -73,6 +73,7 @@ struct	pentry	{
 
 /* for demand paging */
     unsigned long pdbr;             /* PDBR                         */
+    // TODO: multiple stores for a process
     int     store;                  /* backing store for vheap      */
     int     vhpno;                  /* starting pageno for vheap    */
     int     vhpnpages;              /* vheap size                   */
