@@ -8,6 +8,9 @@
 
 unsigned long currSP;	/* REAL sp of current process */
 
+SYSCALL dirty_frames_handler(int);
+void update_frame_dirty(int, int);
+
 /*------------------------------------------------------------------------
  * resched  --  reschedule processor to highest priority ready process
  *
@@ -50,6 +53,12 @@ int	resched()
 		optr->pstate = PRREADY;
 		insert(currpid,rdyhead,optr->pprio);
 	}
+    
+	/* PSP: things before context switch */
+    if (dirty_frames_handler(currpid) == SYSERR) {
+        return SYSERR;
+    }
+	write_cr3(nptr->pdbr);
 
 	/* remove highest priority process at end of ready list */
 
@@ -84,8 +93,6 @@ int	resched()
 	PrintSaved(nptr);
 #endif
 
-	/* PSP: Writing CR3 Register */
-	write_cr3(nptr->pdbr);	
 	ctxsw(&optr->pesp, optr->pirmask, &nptr->pesp, nptr->pirmask);
 
 #ifdef	DEBUG
@@ -96,7 +103,6 @@ int	resched()
 	restore(PS);
 	return OK;
 }
-
 
 
 #ifdef DEBUG
@@ -119,4 +125,28 @@ PrintSaved(ptr)
 }
 #endif
 
+void update_frame_dirty(int vpno, int frm_id) {
+    struct pt_t *pte = (struct pt_t *) get_pteaddr(vpno);
+    if (pte->pt_dirty == DIRTY) {
+        frm_tab[frm_id].fr_dirty = DIRTY;
+    }
+    else {
+        frm_tab[frm_id].fr_dirty = NOT_DIRTY;
+    }
+}
 
+SYSCALL dirty_frames_handler(int pid) {
+    /*
+    traverse frm_tab
+    update dirty of frm_tab if pt_t is dirty
+    if frm_tab belongs to this processes and is dirty then write it
+    */
+    int i = 0;
+    for (; i < NFRAMES; i++) {
+        update_frame_dirty(frm_tab[i].fr_vpno, i);
+        if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_dirty == DIRTY) {
+            if (write_dirty_frame(frm_tab[i].vpno) == SYSERR)
+                return SYSERR;
+        }
+    }
+}
