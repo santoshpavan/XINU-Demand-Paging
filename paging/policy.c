@@ -45,7 +45,6 @@ void init_policy_lists() {
 }
 
 void add_sc_list(int frame_ind) {
-    /* update last element's next_id */
     /* head -> new_ele -> first_ele -> ... ->last_ele -> new_ele <- tail*/
     struct sc_list node;
     node.ind = frame_ind;
@@ -60,11 +59,13 @@ void add_sc_list(int frame_ind) {
 }
 
 void add_ag_list(int frame_ind) {
-    /* update last element's next_id */
     /* tail --> new_ele ->...-> first_ele <- head */
     struct ag_list node;
     node.ind = frame_ind;
     node.next = ag_tail.next;
+    node.age = MAX_AGE;
+    if (head.next == NULL)
+        head.next = &node;
     ag_tail.next = &node;
 }
 /* removing elements implemented in the replace_page function */

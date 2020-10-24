@@ -98,6 +98,8 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define DIRTY		    1
 #define NOT_DIRTY	    0
 #define PF_INTERRUPT	14
+#define NOT_PRESENT     0
+#define PRESENT         1
 
 #ifndef NOT_PRIVATE
 #define NOT_PRIVATE	    0
@@ -135,9 +137,7 @@ void pfintr(void);
 extern long pferrcode;
 
 /* PSP: the data structures for page replacement */
-SYSCALL srpolicy(int);
-SYSCALL grpolicy(void);
-int replace_page(void);
+#define MAX_AGE      255
 
 // for SC policy
 typedef struct {
@@ -146,7 +146,6 @@ typedef struct {
 } sc_list;
 struct sc_list sc_head;
 struct sc_list sc_tail;
-struct sc_list *clock_hand;
 
 // for Aging policy
 typedef struct {
@@ -157,6 +156,15 @@ typedef struct {
 struct ag_list ag_head;
 struct ag_list ag_tail;
 
+/* policy.c */
+SYSCALL srpolicy(int);
+SYSCALL grpolicy(void);
 void init_policy_lists(void);
 void add_sc_list(int frame_ind);
 void add_ag_list(int frame_ind);
+
+/* pfint.c */
+int replace_page(int, int);
+int check_acc(int);
+unsigned long get_pteaddr(int);
+SYSCALL write_dirty_frame(int);
