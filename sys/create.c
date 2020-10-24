@@ -68,7 +68,7 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
 	pptr->pnxtkin = BADPID;
 	pptr->pdevs[0] = pptr->pdevs[1] = pptr->ppagedev = BADDEV;
 
-	create_directory();
+	create_directory(pid);
 
 	/* Bottom of stack */
 	*saddr = MAGIC;
@@ -123,15 +123,14 @@ LOCAL int newpid()
 }
 
 /* PSP: Create directory */
-void create_directory(void) {
+void create_directory(int pid) {
     /*
  	* Find empty page frame
  	* put directory there
  	* frame mapping
  	*/
-	int freeframe_ind = get_frm(NULL);
-    if (freeframe_ind == SYSERR) {
-        //page swap
+	int freeframe_ind;
+    if (get_frm(freeframe_ind) == SYSERR) {
         freeframe_ind = replace_page();
     }
     struct fr_map_t *frm_ptr = &frm_tab[freeframe_ind];
@@ -141,11 +140,12 @@ void create_directory(void) {
 	frm_ptr->type = FR_DIR;
 	frm_ptr->fr_dirty = NOT_DIRTY;
     
-    pptr->pdbr = (unsigned long) (((1024 * freeframe_ind) * 4096) + 1);
+    pptr->pdbr = (unsigned long) ((1024 * freeframe_ind) * 4096);
     pptr->ppolicy = page_replace_policy;
-    
+    /*
     struct virt_addr_t = (struct virt_addr_t) (0);
     frm_ptr->vpnp = (int) virt_addr_t;
+    */
     unsigned int pte_ind = 0;
     for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
         struct pd_t *pd_ptr = (struct pd_t *) (pptr->pdbr + (pte_ind * sizeof(struct pd_t)));
@@ -161,7 +161,7 @@ void create_directory(void) {
         pd_ptr->pt_avail = 0;
         if (pte_ind < 4) {
             pd_ptr->pd_pres = 1;
-            pd_ptr->pd_base = (unsigned int)(((1025 + pte_ind) * 4096) + 1);
+            pd_ptr->pd_base = (unsigned int)((1025 + pte_ind) * 4096);
         }
    	}
 }

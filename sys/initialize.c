@@ -318,11 +318,13 @@ void create_null_proc_pd() {
 	frm_ptr->refcnt = 0;
 	frm_ptr->type = FR_DIR;
 	frm_ptr->fr_dirty = NOT_DIRTY;
+    /*
     struct virt_addr_t = (struct virt_addr_t) (0);
     frm_ptr->vpnp = (int) virt_addr_t;
+    */
     unsigned int pte_ind = 0;
     for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
-        struct pd_t *pd_ptr = (struct pd_t *) ((((1025 + page_no) * 4096) + 1)+ pte_ind * sizeof(struct pd_t));
+        struct pd_t *pd_ptr = (struct pd_t *) (((1025 + page_no) * 4096) + pte_ind * sizeof(struct pd_t));
         pd_ptr->pd_pres = 1;
         pd_ptr->pd_write = 1;
         pd_ptr->pd_user = 0;
@@ -334,7 +336,8 @@ void create_null_proc_pd() {
         pd_ptr->pd_global = 0;
         pd_ptr->pt_avail = 0;
         if (pte_ind < 4) {
-            pd_ptr->pd_base = (unsigned int)(((1025 + pte_ind) * 4096) + 1);
+            pd_ptr->pd_pres = 1;
+            pd_ptr->pd_base = (unsigned int)((1025 + pte_ind) * 4096);
         }
    	}
 }
