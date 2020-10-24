@@ -65,21 +65,23 @@ SYSCALL free_bsm(int i)
 SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
 {
     /*
-    traverse through bsm_tab
-        check if vaddr is valid
+    get storeid from the proctab
+    check if that is valid
+    check if vaddr is valid
     assign store and pageth values    
     */
+    //TODO: multiple store mappings for a process
     if (vaddr < 0)
         return SYSERR;
-    int i = 0; 
-    for (; i < NBSM; i++) {
-        struct bs_map_t *mptr = &bsm_tab[i];
-        if (mptr->bs_pid == pid && vaddr <= mptr->bs_npages) {
-            *store = i;
-            // getting vpno from the vaddr
-            *pageth = vaddr>>12;
-            return OK;
-        }
+    int bs_id = proctab[pid].store;
+    // if processes has been unmapped
+    if (bs_id == -1)
+        return SYSERR;
+    if (vaddr <= bsm_tab[bs_id].bs_npages) {
+        *store = bs_id;
+        // getting vpno from the vaddr
+        *pageth = vaddr>>12;
+        return OK;
     }
     return SYSERR;
 }
