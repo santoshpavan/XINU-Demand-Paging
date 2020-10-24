@@ -40,7 +40,7 @@ SYSCALL pfint()
       
       unsigned long proc_pdbr = proctab[currpid].pdbr;
 
-      struct pd_t *fault_pde = (struct pd_t *) (proc_pdbr + (long)pt_no<<2);
+      pd_t *fault_pde = (pd_t *) (proc_pdbr + (long)pt_no<<2);
       /* case a: second level table DNE */
       if (fault_pde->pd_pres == 0) {
             int freeframe_ind;
@@ -54,7 +54,7 @@ SYSCALL pfint()
                 }
                 */
             }
-            struct fr_map_t *avail_frame = &frm_tab[freeframe_ind];
+            fr_map_t *avail_frame = &frm_tab[freeframe_ind];
             avail_frame->fr_status = FRM_MAPPED;
             avail_frame->fr_pid = currpid;
             avail_frame->fr_type = FR_TBL;
@@ -70,7 +70,7 @@ SYSCALL pfint()
       find free frame
       if no free frame, perform page replacement
       */
-      struct pt_t *fault_pte = (struct pt_t *) (fault_pde->pdbase + (long)pg_no<<2);
+      pt_t *fault_pte = (pt_t *) (fault_pde->pdbase + (long)pg_no<<2);
       int freeframe_ind;
       if (get_frm(&freeframe_ind) == SYSERR) {
               // perform page replacement to get the frame
@@ -84,7 +84,7 @@ SYSCALL pfint()
               if (write_dirty_frame(freeframe_ind) == SYSERR)
                   return SYSERR;
       }
-      struct fr_map_t *avail_frame = &frm_tab[freeframe_ind];
+      fr_map_t *avail_frame = &frm_tab[freeframe_ind];
       avail_frame->fr_status = FRM_MAPPED;
       avail_frame->fr_pid = currpid;
       avail_frame->fr_vpno = (int)vpno;
@@ -106,9 +106,9 @@ int replace_page(int store_id, int page_id) {
     int frame_ind;
     if (page_replace_policy == AGING) {
         int min_age = MAX_AGE;
-        struct pg_list *hand = ag_tail.next;
-        struct pg_list *prev = &ag_tail;
-        struct pg_list *prev_minind = NULL;
+        ag_list *hand = ag_tail.next;
+        ag_list *prev = &ag_tail;
+        ag_list *prev_minind = NULL;
         // traversing from tail to head
         while (hand != NULL) {
             hand->age = hand->age>>1;
@@ -129,8 +129,8 @@ int replace_page(int store_id, int page_id) {
         prev_minind->next = (prev_minind-next)->next;
     }
     else {
-        struct sc_list *clock_hand = sc_head.next;
-        struct sc_list *prev = &sc_head;
+        sc_list *clock_hand = sc_head.next;
+        sc_list *prev = &sc_head;
         while (1) {
             /* TODO: Not sure
             if (frm_tab[clock_hand->ind].fr_pid != currpid)
@@ -148,7 +148,7 @@ int replace_page(int store_id, int page_id) {
         clock_hand->next = NULL;
     }
     
-    struct pt_t *pte = (struct pt_t *) frameind_to_pteaddr(frame_ind);
+    pt_t *pte = (pt_t *) frameind_to_pteaddr(frame_ind);
     pte->pt_pres = NOT_PRESENT;
     //TODO: multiple processes for shared bs
     if (currpid == frm_tab[frame_ind].fr_pid) {
@@ -167,7 +167,7 @@ int replace_page(int store_id, int page_id) {
 int check_acc(int frame_ind) {
     // check pt_acc and put 0
     int vpno = frm_tab[frame_ind].fr_vpno;
-    struct pt_t *pte = (struct pt_t *) get_pteaddr(vpno);
+    pt_t *pte = (pt_t *) get_pteaddr(vpno);
     if (pte->pt_acc == 0)
         return 0;
     else {
@@ -180,13 +180,13 @@ unsigned long get_pteaddr(int vpno) {
     unsigned int pd_offset = vpno>>10;
     unsigned int pt_offset = (vpno<<10)>>10;
     unsigned long pdbr = proctab[frm_tab[frame_ind].fr_pid].pdbr;
-    struct pd_t *pde = (struct pd_t *) (pdbr + (long)pd_offset<<2);
+    pd_t *pde = (pd_t *) (pdbr + (long)pd_offset<<2);
     return (pde->pdbase + (long)pt_offset<<2);
 }
 
 SYSCALL write_dirty_frame(int frame_ind) {
     unsigned long vpno = frm_tab[frame_ind].fr_vpno;
-    struct pt_t *pte = (struct pt_t *) get_pteaddr(vpno);
+    pt_t *pte = (pt_t *) get_pteaddr(vpno);
     int pid = frm_tab[frame_ind].fr_pid;
 
     // set by the hardware
@@ -199,7 +199,7 @@ SYSCALL write_dirty_frame(int frame_ind) {
         }
         unsigned long pdbr = proctab[currpid].pdbr;
         unsigned int pd_offset = vpno>>10;
-        struct pd_t *pde = (struct pd_t *) (pdbr + (long)pd_offset<<2);
+        pd_t *pde = (pd_t *) (pdbr + (long)pd_offset<<2);
         write_bs((char *)(pde->pdbase), (bsd_t)store, page);
     }
     return OK;

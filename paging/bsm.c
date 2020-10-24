@@ -11,9 +11,9 @@
  */
 SYSCALL init_bsm()
 {
-    //struct bs_map_t *bsm_tab = (struct bs_map_t *)BACKING_STORE_BASE;
+    //bs_map_t *bsm_tab = (bs_map_t *)BACKING_STORE_BASE;
 	// there are 8 entries in bsm_tab
-	struct bs_map_t bsm_tab[NBSM];
+	bs_map_t bsm_tab[NBSM];
 	int i = 0;
 	for (; i < NBSM; i++) {
 		bsm_tab[i].bs_status = BSM_UNMAPPED;
@@ -105,13 +105,13 @@ SYSCALL bsm_map(int pid, int vpno, int source, int npages)
         bsm_tab[source].bs_pid = pid;
     }
     else {
-        struct shared_list *ptr = bsm_tab[source].bs_pids;
-        struct shared_list *prev = NULL;
+        shared_list *ptr = bsm_tab[source].bs_pids;
+        shared_list *prev = NULL;
         while (ptr != NULL) {
             prev = ptr;
             ptr->next = ptr;
         }
-        struct shared_list newbs_pid;
+        shared_list newbs_pid;
         newbs_pid.bs_pid = pid;
         newbs_pid.next = NULL;
         prev->next = &newbs_pid;
@@ -136,8 +136,8 @@ SYSCALL bsm_unmap(int pid, int vpno, int flag)
     }
     else{
         // shared bs unmapping
-        struct shared_list *ptr = bsm_tab[bs_ind].fr_pids;
-        struct shared_list *prev = NULL;
+        shared_list *ptr = bsm_tab[bs_ind].fr_pids;
+        shared_list *prev = NULL;
         while (ptr != NULL) {
             if (ptr->fr_pid == pid) {
                 // unmapping

@@ -133,7 +133,7 @@ void create_directory(int pid) {
     if (get_frm(freeframe_ind) == SYSERR) {
         freeframe_ind = replace_page();
     }
-    struct fr_map_t *frm_ptr = &frm_tab[freeframe_ind];
+    fr_map_t *frm_ptr = &frm_tab[freeframe_ind];
 	frm_ptr->fr_status = FRM_MAPPED;
 	frm_ptr->fr_pid = pid;
 	frm_ptr->refcnt = 0;
@@ -148,7 +148,7 @@ void create_directory(int pid) {
     */
     unsigned int pte_ind = 0;
     for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
-        struct pd_t *pd_ptr = (struct pd_t *) (pptr->pdbr + (pte_ind * sizeof(struct pd_t)));
+        pd_t *pd_ptr = (pd_t *) (pptr->pdbr + (pte_ind * sizeof(pd_t)));
         pd_ptr->pd_pres = 0;
         pd_ptr->pd_write = 1;
         pd_ptr->pd_user = 0;

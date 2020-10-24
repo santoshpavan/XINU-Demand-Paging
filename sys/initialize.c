@@ -285,8 +285,8 @@ void create_global_pg_tables() {
     */
     unsigned int page_no = 0;
     for (; page_no < N_GLOBAL_PT + 1; page_no++) {
-        //struct fr_map_t *frm_ptr = (struct fr_map_t *)(((1025 + page_no) * 4096) + 1);
-        struct fr_map_t *frm_ptr = &frm_tab[page_no + 1];
+        //fr_map_t *frm_ptr = (fr_map_t *)(((1025 + page_no) * 4096) + 1);
+        fr_map_t *frm_ptr = &frm_tab[page_no + 1];
         frm_ptr->fr_status = FRM_MAPPED;
         frm_ptr->fr_pid = 100; // all the processes
     	frm_ptr->refcnt = 0;
@@ -294,7 +294,7 @@ void create_global_pg_tables() {
     	frm_ptr->fr_dirty = NOT_DIRTY;
         unsigned int pte_ind = 0;
         for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
-              struct pt_t *pt_ptr = (struct pt_t *) ((((1025 + page_no) * 4096) + 1) + pte_ind * sizeof(struct pt_t));
+              pt_t *pt_ptr = (pt_t *) (((1025 + page_no) * 4096) + pte_ind * sizeof(pt_t));
               pt_ptr->pt_pres = 1;
               pt_ptr->pt_write = 1;
               pt_ptr->pt_user = 0;
@@ -311,20 +311,20 @@ void create_global_pg_tables() {
 }
 
 void create_null_proc_pd() {
-    //struct fr_map_t *frm_ptr = (struct fr_map_t *)((1024 * 4096) + 1);
-	struct fr_map_t *frm_ptr = &frm_tab[0];
+    //fr_map_t *frm_ptr = (fr_map_t *)((1024 * 4096) + 1);
+	fr_map_t *frm_ptr = &frm_tab[0];
     frm_ptr->fr_status = FRM_MAPPED;
 	frm_ptr->fr_pid = 0;
 	frm_ptr->refcnt = 0;
 	frm_ptr->type = FR_DIR;
 	frm_ptr->fr_dirty = NOT_DIRTY;
     /*
-    struct virt_addr_t = (struct virt_addr_t) (0);
+    virt_addr_t = (virt_addr_t) (0);
     frm_ptr->vpnp = (int) virt_addr_t;
     */
     unsigned int pte_ind = 0;
     for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
-        struct pd_t *pd_ptr = (struct pd_t *) (((1025 + page_no) * 4096) + pte_ind * sizeof(struct pd_t));
+        pd_t *pd_ptr = (pd_t *) (((1025 + page_no) * 4096) + pte_ind * sizeof(pd_t));
         pd_ptr->pd_pres = 1;
         pd_ptr->pd_write = 1;
         pd_ptr->pd_user = 0;

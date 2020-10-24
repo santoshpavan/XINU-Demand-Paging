@@ -12,7 +12,7 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
 	if (npages <= 0 || npages > MAX_BST_SIZE || bs_ind < 0 || bs_ind >= NBSM ) {
 		return SYSERR;
 	}
-    struct bs_map_t *bsmap = &bsm_tab[bs_ind];
+    bs_map_t *bsmap = &bsm_tab[bs_ind];
     struct pentry *pproc = &proctab[currpid];
 	if (pproc->pvt == IS_PRIVATE) {
         if (bsmap->status == BS_MAPPED && bsmap->bs_pid == currpid && bsmap->pvt == IS_PRIVATE) {

@@ -24,8 +24,8 @@ SYSCALL release_bs(bsd_t bs_id) {
         traverse through the shared_list in bsm_tab
         if found the mapping with this procid, then unmap it
         */
-        struct shared_list *ptr = bsm_tab[bs_ind].fr_pids;
-        struct shared_list *prev = NULL;
+        shared_list *ptr = bsm_tab[bs_ind].fr_pids;
+        shared_list *prev = NULL;
         while (ptr != NULL) {
             if (ptr->fr_pid == currpid) {
                 // unmapping

@@ -43,7 +43,7 @@ typedef struct{
 typedef struct{
   int bs_status;			/* MAPPED or UNMAPPED		*/
   int bs_pid;				/* process id using this slot   */
-  struct shared_list *bs_pids;
+  shared_list *bs_pids;
   int bs_vpno;				/* starting virtual page number */
   int bs_npages;			/* no of pages in the store used*/
   int bs_sem;				/* semaphore mechanism ?	*/
@@ -65,7 +65,7 @@ extern fr_map_t frm_tab[];
 /* list of processes for shared mapping */
 typedef struct {
   int bs_pid;
-  struct shared_list *next;
+  shared_list *next;
 } shared_list;
 
 /* Prototypes for required API calls */
@@ -149,19 +149,19 @@ extern long pferrcode;
 // for SC policy
 typedef struct {
   int ind;
-  struct sc_list* next;
+  sc_list* next;
 } sc_list;
-struct sc_list sc_head;
-struct sc_list sc_tail;
+sc_list sc_head;
+sc_list sc_tail;
 
 // for Aging policy
 typedef struct {
   int ind;
   int age;
-  struct ag_list* next;
+  ag_list* next;
 } ag_list;
-struct ag_list ag_head;
-struct ag_list ag_tail;
+ag_list ag_head;
+ag_list ag_tail;
 
 /* policy.c */
 SYSCALL srpolicy(int);

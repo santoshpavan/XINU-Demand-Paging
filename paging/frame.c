@@ -12,7 +12,7 @@ SYSCALL init_frm()
 {
 	kprintf("---init frame!\n");
     // pointing to the 1024th page beginning
-	struct fr_map_t frm_tab[NFRAMES];
+	fr_map_t frm_tab[NFRAMES];
 	int i = 0;
 	for(; i < NFRAMES; i++) {
 		frm_tab[i].status = FRM_UNMAPPED;

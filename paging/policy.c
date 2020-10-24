@@ -46,7 +46,7 @@ void init_policy_lists() {
 
 void add_sc_list(int frame_ind) {
     /* head -> new_ele -> first_ele -> ... ->last_ele -> new_ele <- tail*/
-    struct sc_list node;
+    sc_list node;
     node.ind = frame_ind;
     if (sc_head.next == NULL) {
         sc_head.next = &node;
@@ -60,7 +60,7 @@ void add_sc_list(int frame_ind) {
 
 void add_ag_list(int frame_ind) {
     /* tail --> new_ele ->...-> first_ele <- head */
-    struct ag_list node;
+    ag_list node;
     node.ind = frame_ind;
     node.next = ag_tail.next;
     node.age = MAX_AGE;

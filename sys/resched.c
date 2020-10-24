@@ -126,7 +126,7 @@ PrintSaved(ptr)
 #endif
 
 void update_frame_dirty(int vpno, int frm_id) {
-    struct pt_t *pte = (struct pt_t *) get_pteaddr(vpno);
+    pt_t *pte = (pt_t *) get_pteaddr(vpno);
     if (pte->pt_dirty == DIRTY) {
         frm_tab[frm_id].fr_dirty = DIRTY;
     }
