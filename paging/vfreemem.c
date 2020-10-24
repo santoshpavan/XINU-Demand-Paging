@@ -28,9 +28,9 @@ SYSCALL	vfreemem(block, size)
     if (size==0 || (unsigned)block>(unsigned)maxaddr
         || ((unsigned)block)<((unsigned) &end))
     */
-    unsigned long max_virt_addr = BACKING_STORE_BASE + BACKING_STORE_UNIT_SIZE * 8 - 1;
-    if (size == 0 || (unsigned)block > (unsigned)proctab[currpid].vhpnpages
-        (unsigned)block > max_virt_addr || (unsigned)block < BACKING_STORE_BASE)
+    unsigned long base_addr = BACKING_STORE_BASE + BACKING_STORE_UNIT_SIZE * proctab[currpid].store;
+    unsigned long max_virt_addr = base_addr + proctab[currpid].vhpnpages*NBPG;
+    if (size == 0 || (unsigned)block > max_virt_addr || (unsigned)block < base_addr)
             return(SYSERR);
     size = (unsigned)roundmb(size);
     disable(ps);

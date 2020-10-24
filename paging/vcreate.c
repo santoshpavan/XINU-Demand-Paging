@@ -46,6 +46,8 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	bsm_tab[bs_id].pvt = IS_PRIVATE;
 	proctab[pid].store = bs_id;
 	proctab[pid].vhpnpages = hsize;
+    proctab[pid].vmemlist->mlen = hsize*NBPG;
+    proctab[pid].vmemlist->mnext = (mblock*) BACKING_STORE_BASE + bs_id*BACKING_STORE_UNIT_SIZE;
 	//proctab[pid].vhpno = ;// starting pageno for heap-impl in get_bsm	
 	bsm_map(pid, procaddr>>12, bs_id, hsize);
 
