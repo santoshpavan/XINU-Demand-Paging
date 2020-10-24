@@ -43,6 +43,7 @@ typedef struct{
 typedef struct{
   int bs_status;			/* MAPPED or UNMAPPED		*/
   int bs_pid;				/* process id using this slot   */
+  struct shared_list *bs_pids;
   int bs_vpno;				/* starting virtual page number */
   int bs_npages;			/* no of pages in the store used*/
   int bs_sem;				/* semaphore mechanism ?	*/
@@ -60,6 +61,12 @@ typedef struct{
 
 extern bs_map_t bsm_tab[];
 extern fr_map_t frm_tab[];
+
+/* list of processes for shared mapping */
+typedef struct {
+  int bs_pid;
+  struct shared_list *next;
+} shared_list;
 
 /* Prototypes for required API calls */
 SYSCALL xmmap(int, bsd_t, int);
