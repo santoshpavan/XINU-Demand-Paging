@@ -17,18 +17,23 @@ SYSCALL	vfreemem(block, size)
 	kprintf("---FREEMEM!\n");
 	
 	STATWORD ps;
-        struct  mblock  *p, *q;
-        unsigned top;
+    struct  mblock  *p, *q;
+    unsigned top;
 	
 	/*
  	* TODO: Change the maxaddr here as freemem deals with physical 
  	* address and vfreemem is dealing with virtual memory
  	*/	
-        if (size==0 || (unsigned)block>(unsigned)maxaddr
-            || ((unsigned)block)<((unsigned) &end))
-                return(SYSERR);
-        size = (unsigned)roundmb(size);
-        disable(ps);
+    /*
+    if (size==0 || (unsigned)block>(unsigned)maxaddr
+        || ((unsigned)block)<((unsigned) &end))
+    */
+    unsigned long max_virt_addr = BACKING_STORE_BASE + BACKING_STORE_UNIT_SIZE * 8 - 1;
+    if (size == 0 || (unsigned)block > (unsigned)proctab[currpid].vhpnpages
+        (unsigned)block > max_virt_addr || (unsigned)block < BACKING_STORE_BASE)
+            return(SYSERR);
+    size = (unsigned)roundmb(size);
+    disable(ps);
         
 	struct mblock *v_heap_memlist = proctab[currpid].vmemlist;
 	for( p=v_heap_memlist.mnext,q=v_heap_memlist;
