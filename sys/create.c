@@ -25,6 +25,7 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
 	long	args;			/* arguments (treated like an	*/
 					/* array in the code)		*/
 {
+    kprintf("creating process...\n");
 	unsigned long	savsp, *pushsp;
 	STATWORD 	ps;    
 	int		pid;		/* stores new process id	*/
@@ -129,6 +130,7 @@ void create_directory(int pid) {
  	* put directory there
  	* frame mapping
  	*/
+    kprintf("creating directory for process...\n");
 	int freeframe_ind;
     if (get_frm(freeframe_ind) == SYSERR) {
         freeframe_ind = replace_page();

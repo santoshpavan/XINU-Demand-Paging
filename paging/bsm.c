@@ -11,6 +11,7 @@
  */
 SYSCALL init_bsm()
 {
+    kprintf("---init bsm\n");
     //bs_map_t *bsm_tab = (bs_map_t *)BACKING_STORE_BASE;
 	// there are 8 entries in bsm_tab
 	//bs_map_t bsm_tab[NBSM];

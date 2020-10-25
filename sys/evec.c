@@ -52,6 +52,7 @@ int initevec()
  */
 int set_evec(unsigned int xnum, u_long handler)
 {
+    //kprintf("setting interrupt %d\n", xnum);
 	struct	idt	*pidt;
 
 	pidt = &idt[xnum];
@@ -67,7 +68,8 @@ int set_evec(unsigned int xnum, u_long handler)
 		xnum -= 32;
 		girmask &= ~(1<<xnum);
 	}
-        return(OK);
+    
+    return(OK);
 }
 
 char *inames[17] = {
