@@ -12,16 +12,17 @@ SYSCALL init_frm()
 {
 	kprintf("---init frame!\n");
     // pointing to the 1024th page beginning
-	fr_map_t frm_tab[NFRAMES];
+	//fr_map_t frm_tab[NFRAMES];
 	int i = 0;
 	for(; i < NFRAMES; i++) {
-		frm_tab[i].status = FRM_UNMAPPED;
+		frm_tab[i].fr_status = FRM_UNMAPPED;
         frm_tab[i].fr_pid = -1;			
         frm_tab[i].fr_vpno = -1;			
         frm_tab[i].fr_refcnt = 0;			
         //frm_tab[i].fr_type;				
         frm_tab[i].fr_dirty = NOT_DIRTY;
 	}
+    kprintf("--done init frame!\n");
 	return OK;
 }
 
@@ -38,7 +39,7 @@ SYSCALL get_frm(int* avail)
     */
     int i = 0;
     for (; i < NFRAMES; i++) {
-        if (frm_tab[i] == UNMAPPED) {
+        if (frm_tab[i].fr_status == FRM_UNMAPPED) {
             *avail = i;
             if (grpolicy() == SC) {
                 add_sc_list(i);
@@ -59,6 +60,6 @@ SYSCALL get_frm(int* avail)
 SYSCALL free_frm(int i)
 {
     kprintf("---Freeing frame!\n");
-    frm_tab[i] = FRM_UNMAPPED;
+    frm_tab[i].fr_status = FRM_UNMAPPED;
     return OK;
 }

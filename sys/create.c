@@ -10,7 +10,7 @@
 #include <paging.h>
 
 LOCAL int newpid();
-void create_directory(void);
+void create_directory(int);
 
 /*------------------------------------------------------------------------
  *  create  -  create a process to start running a procedure
@@ -136,12 +136,13 @@ void create_directory(int pid) {
     fr_map_t *frm_ptr = &frm_tab[freeframe_ind];
 	frm_ptr->fr_status = FRM_MAPPED;
 	frm_ptr->fr_pid = pid;
-	frm_ptr->refcnt = 0;
-	frm_ptr->type = FR_DIR;
+	frm_ptr->fr_refcnt = 0;
+	frm_ptr->fr_type = FR_DIR;
 	frm_ptr->fr_dirty = NOT_DIRTY;
     
+    struct	pentry	*pptr = &proctab[pid];
     pptr->pdbr = (unsigned long) ((1024 * freeframe_ind) * 4096);
-    pptr->ppolicy = page_replace_policy;
+    pptr->ppolicy = grpolicy();
     /*
     struct virt_addr_t = (struct virt_addr_t) (0);
     frm_ptr->vpnp = (int) virt_addr_t;
@@ -149,16 +150,16 @@ void create_directory(int pid) {
     unsigned int pte_ind = 0;
     for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
         pd_t *pd_ptr = (pd_t *) (pptr->pdbr + (pte_ind * sizeof(pd_t)));
-        pd_ptr->pd_pres = 0;
+        pd_ptr->pd_pres = 1;
         pd_ptr->pd_write = 1;
         pd_ptr->pd_user = 0;
         pd_ptr->pd_pwt = 0;
         pd_ptr->pd_pcd = 0;
         pd_ptr->pd_acc = 0;
         pd_ptr->pd_mbz = 0;
-        pd_ptr->fmb = 0;
+        pd_ptr->pd_fmb = 0;
         pd_ptr->pd_global = 0;
-        pd_ptr->pt_avail = 0;
+        pd_ptr->pd_avail = 0;
         if (pte_ind < 4) {
             pd_ptr->pd_pres = 1;
             pd_ptr->pd_base = (unsigned int)((1025 + pte_ind) * 4096);

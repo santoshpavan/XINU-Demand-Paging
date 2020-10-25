@@ -15,16 +15,16 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
     bs_map_t *bsmap = &bsm_tab[bs_ind];
     struct pentry *pproc = &proctab[currpid];
 	if (pproc->pvt == IS_PRIVATE) {
-        if (bsmap->status == BS_MAPPED && bsmap->bs_pid == currpid && bsmap->pvt == IS_PRIVATE) {
+        if (bsmap->bs_status == BS_MAPPED && bsmap->bs_pid == currpid && bsmap->pvt == IS_PRIVATE) {
             return MAX_BST_SIZE - bsmap->bs_npages;
         }
-        else if (pmap->status == BS_UNMAPPED) {
+        else if (bsmap->bs_status == BS_UNMAPPED) {
             return npages;
         }
     }
     else {
     	if (bsmap->pvt == NOT_PRIVATE) {
-            if (bsmap->status == BS_MAPPED)
+            if (bsmap->bs_status == BS_MAPPED)
     		    return bsmap->bs_npages;
             else
                 return npages;

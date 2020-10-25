@@ -13,10 +13,10 @@ SYSCALL init_bsm()
 {
     //bs_map_t *bsm_tab = (bs_map_t *)BACKING_STORE_BASE;
 	// there are 8 entries in bsm_tab
-	bs_map_t bsm_tab[NBSM];
+	//bs_map_t bsm_tab[NBSM];
 	int i = 0;
 	for (; i < NBSM; i++) {
-		bsm_tab[i].bs_status = BSM_UNMAPPED;
+		bsm_tab[i].bs_status = BS_UNMAPPED;
 		bsm_tab[i].bs_pid = -1; //used when private
         bsm_tab[i].bs_pids = NULL; //used when shared
 		bsm_tab[i].bs_npages = 0;
@@ -53,7 +53,7 @@ SYSCALL get_bsm(int* avail)
 SYSCALL free_bsm(int i)
 {
 	// called when the BS is private and reset everything
-	bsm_tab[i].bs_status = BSM_UNMAPPED;
+	bsm_tab[i].bs_status = BS_UNMAPPED;
     bsm_tab[i].bs_pid = -1;
     bsm_tab[i].bs_npages = 0;
     bsm_tab[i].pvt = NOT_PRIVATE;
@@ -131,15 +131,15 @@ SYSCALL bsm_unmap(int pid, int vpno, int flag)
 	int bs_ind = proctab[pid].store;
     if (bsm_tab[bs_ind].pvt == IS_PRIVATE) {
     	proctab[pid].store = -1;
-    	bsm_tab[bs_ind].bs_status = BSM_UNMAPPED;
+    	bsm_tab[bs_ind].bs_status = BS_UNMAPPED;
     	bsm_tab[bs_ind].pvt = NOT_PRIVATE;
     }
     else{
         // shared bs unmapping
-        shared_list *ptr = bsm_tab[bs_ind].fr_pids;
+        shared_list *ptr = bsm_tab[bs_ind].bs_pids;
         shared_list *prev = NULL;
         while (ptr != NULL) {
-            if (ptr->fr_pid == pid) {
+            if (ptr->bs_pid == pid) {
                 // unmapping
                 prev->next = ptr->next;
                 return OK;

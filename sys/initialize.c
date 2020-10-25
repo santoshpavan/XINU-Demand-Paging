@@ -188,6 +188,7 @@ sysinit()
 #endif
 
 	/* PSP: initializing things */
+    kprintf("sys init...\n");    
     init_bsm();
     init_frm();
  	set_evec(PF_INTERRUPT, pfintr);
@@ -289,8 +290,8 @@ void create_global_pg_tables() {
         fr_map_t *frm_ptr = &frm_tab[page_no + 1];
         frm_ptr->fr_status = FRM_MAPPED;
         frm_ptr->fr_pid = 100; // all the processes
-    	frm_ptr->refcnt = 0;
-    	frm_ptr->type = FR_DIR;
+    	frm_ptr->fr_refcnt = 0;
+    	frm_ptr->fr_type = FR_DIR;
     	frm_ptr->fr_dirty = NOT_DIRTY;
         unsigned int pte_ind = 0;
         for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
@@ -315,8 +316,8 @@ void create_null_proc_pd() {
 	fr_map_t *frm_ptr = &frm_tab[0];
     frm_ptr->fr_status = FRM_MAPPED;
 	frm_ptr->fr_pid = 0;
-	frm_ptr->refcnt = 0;
-	frm_ptr->type = FR_DIR;
+	frm_ptr->fr_refcnt = 0;
+	frm_ptr->fr_type = FR_DIR;
 	frm_ptr->fr_dirty = NOT_DIRTY;
     /*
     virt_addr_t = (virt_addr_t) (0);
@@ -324,7 +325,7 @@ void create_null_proc_pd() {
     */
     unsigned int pte_ind = 0;
     for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
-        pd_t *pd_ptr = (pd_t *) (((1025 + page_no) * 4096) + pte_ind * sizeof(pd_t));
+        pd_t *pd_ptr = (pd_t *) ((1024 * 4096) + pte_ind * sizeof(pd_t));
         pd_ptr->pd_pres = 1;
         pd_ptr->pd_write = 1;
         pd_ptr->pd_user = 0;
@@ -332,9 +333,9 @@ void create_null_proc_pd() {
         pd_ptr->pd_pcd = 0;
         pd_ptr->pd_acc = 0;
         pd_ptr->pd_mbz = 0;
-        pd_ptr->fmb = 0;
+        pd_ptr->pd_fmb = 0;
         pd_ptr->pd_global = 0;
-        pd_ptr->pt_avail = 0;
+        pd_ptr->pd_avail = 0;
         if (pte_ind < 4) {
             pd_ptr->pd_pres = 1;
             pd_ptr->pd_base = (unsigned int)((1025 + pte_ind) * 4096);

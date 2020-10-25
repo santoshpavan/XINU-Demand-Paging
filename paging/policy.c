@@ -35,7 +35,6 @@ void init_policy_lists() {
     sc_head.next = NULL;
     sc_tail.ind = -2;
     sc_tail.next = NULL;
-    clock_hand = NULL;
 
     // Aging Policy
     ag_head.ind = -1;
@@ -64,8 +63,8 @@ void add_ag_list(int frame_ind) {
     node.ind = frame_ind;
     node.next = ag_tail.next;
     node.age = MAX_AGE;
-    if (head.next == NULL)
-        head.next = &node;
+    if (ag_head.next == NULL)
+        ag_head.next = &node;
     ag_tail.next = &node;
 }
 /* removing elements implemented in the replace_page function */

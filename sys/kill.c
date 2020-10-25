@@ -96,10 +96,10 @@ void free_frames_on_kill(int pid) {
     else {
         sc_list *clock_hand = sc_head.next;
         sc_list *prev = &sc_head;
-        while (clock_hand != sc_tail.nextp) {
+        while (clock_hand != sc_tail.next) {
             if (frm_tab[clock_hand->ind].fr_pid == pid) {   
-                prev->next = head->next;
-                free_frm(hand->ind);
+                prev->next = clock_hand->next;
+                free_frm(clock_hand->ind);
                 clock_hand = clock_hand->next;
             }
             else {

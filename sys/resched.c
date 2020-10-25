@@ -9,7 +9,7 @@
 unsigned long currSP;	/* REAL sp of current process */
 
 SYSCALL dirty_frames_handler(int);
-void update_frame_dirty(int, int);
+void update_frame_dirty(int);
 
 /*------------------------------------------------------------------------
  * resched  --  reschedule processor to highest priority ready process
@@ -125,8 +125,8 @@ PrintSaved(ptr)
 }
 #endif
 
-void update_frame_dirty(int vpno, int frm_id) {
-    pt_t *pte = (pt_t *) get_pteaddr(vpno);
+void update_frame_dirty(int frm_id) {
+    pt_t *pte = (pt_t *) get_pteaddr(frm_id);
     if (pte->pt_dirty == DIRTY) {
         frm_tab[frm_id].fr_dirty = DIRTY;
     }
@@ -143,9 +143,9 @@ SYSCALL dirty_frames_handler(int pid) {
     */
     int i = 0;
     for (; i < NFRAMES; i++) {
-        update_frame_dirty(frm_tab[i].fr_vpno, i);
+        update_frame_dirty(i);
         if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_dirty == DIRTY) {
-            if (write_dirty_frame(frm_tab[i].vpno) == SYSERR)
+            if (write_dirty_frame(frm_tab[i].fr_vpno) == SYSERR)
                 return SYSERR;
         }
     }

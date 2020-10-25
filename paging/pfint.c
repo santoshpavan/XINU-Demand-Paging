@@ -9,6 +9,8 @@
  * pfint - paging fault ISR
  *-------------------------------------------------------------------------
  */
+static unsigned long *reg; 
+
 SYSCALL pfint()
 {
       kprintf("!--pfint\n");	
@@ -20,7 +22,7 @@ SYSCALL pfint()
       unsigned long fault_addr = read_cr2();
       unsigned long pt_no = fault_addr>>22;
       unsigned long vpno = fault_addr>>12;
-      unsigned long pg_no = vpno & 003FF;
+      unsigned long pg_no = vpno & 0x003FF;
       unsigned long offset = fault_addr & 0x00000FFF;
       /*
       struct virt_addr_t fault_addr = (virt_addr_t) read_cr2();
@@ -46,7 +48,7 @@ SYSCALL pfint()
             int freeframe_ind;
             if (get_frm(&freeframe_ind) == SYSERR) {
                 // perform page replacement to get the frame
-                freeframe_ind = replace_page(store, page);
+                freeframe_ind = replace_page();
                 /*
                 if (freeframe_ind == SYSERR) {
                     //TODO: Should I kill the process here?
@@ -70,11 +72,11 @@ SYSCALL pfint()
       find free frame
       if no free frame, perform page replacement
       */
-      pt_t *fault_pte = (pt_t *) (fault_pde->pdbase + (long)pg_no<<2);
+      pt_t *fault_pte = (pt_t *) (fault_pde->pd_base + (long)pg_no<<2);
       int freeframe_ind;
       if (get_frm(&freeframe_ind) == SYSERR) {
               // perform page replacement to get the frame
-              freeframe_ind = replace_page(store, page);
+              freeframe_ind = replace_page();
               /*
               if (freeframe_ind == SYSERR) {
                   //TODO: Should I kill the process here?
@@ -102,9 +104,9 @@ SYSCALL pfint()
 }
 
 /* page replacement and get free frame ID */
-int replace_page(int store_id, int page_id) {
+int replace_page() {
     int frame_ind;
-    if (page_replace_policy == AGING) {
+    if (grpolicy() == AGING) {
         int min_age = MAX_AGE;
         ag_list *hand = ag_tail.next;
         ag_list *prev = &ag_tail;
@@ -126,7 +128,7 @@ int replace_page(int store_id, int page_id) {
             hand = hand->next;
         }
         // delete from the list
-        prev_minind->next = (prev_minind-next)->next;
+        prev_minind->next = (prev_minind->next)->next;
     }
     else {
         sc_list *clock_hand = sc_head.next;
@@ -148,16 +150,20 @@ int replace_page(int store_id, int page_id) {
         clock_hand->next = NULL;
     }
     
-    pt_t *pte = (pt_t *) frameind_to_pteaddr(frame_ind);
+    pt_t *pte = (pt_t *) get_pteaddr(frame_ind);
     pte->pt_pres = NOT_PRESENT;
     //TODO: multiple processes for shared bs
     if (currpid == frm_tab[frame_ind].fr_pid) {
-        unsigned long *reg = (long *) vpno*NBPG;
+        *reg = (long *) (frm_tab[frame_ind].fr_vpno*NBPG);
         // invalidating the TLB entry
         asm("invlpg reg");
     }
     frm_tab[frame_ind].fr_refcnt--;
     if (frm_tab[frame_ind].fr_refcnt == 0) {
+        int vpno = frm_tab[frame_ind].fr_vpno;
+        unsigned int pd_offset = vpno>>10;
+        unsigned long pdbr = proctab[frm_tab[frame_ind].fr_pid].pdbr;
+        pd_t *pde = (pd_t *) (pdbr + (long)pd_offset<<2);
         pde->pd_pres = NOT_PRESENT;
     }
     
@@ -166,8 +172,7 @@ int replace_page(int store_id, int page_id) {
 
 int check_acc(int frame_ind) {
     // check pt_acc and put 0
-    int vpno = frm_tab[frame_ind].fr_vpno;
-    pt_t *pte = (pt_t *) get_pteaddr(vpno);
+    pt_t *pte = (pt_t *) get_pteaddr(frame_ind);
     if (pte->pt_acc == 0)
         return 0;
     else {
@@ -176,17 +181,18 @@ int check_acc(int frame_ind) {
     }
 }
 
-unsigned long get_pteaddr(int vpno) {
+unsigned long get_pteaddr(int frame_ind) {
+    int vpno = frm_tab[frame_ind].fr_vpno;
     unsigned int pd_offset = vpno>>10;
     unsigned int pt_offset = (vpno<<10)>>10;
     unsigned long pdbr = proctab[frm_tab[frame_ind].fr_pid].pdbr;
     pd_t *pde = (pd_t *) (pdbr + (long)pd_offset<<2);
-    return (pde->pdbase + (long)pt_offset<<2);
+    return (pde->pd_base + (long)pt_offset<<2);
 }
 
 SYSCALL write_dirty_frame(int frame_ind) {
     unsigned long vpno = frm_tab[frame_ind].fr_vpno;
-    pt_t *pte = (pt_t *) get_pteaddr(vpno);
+    pt_t *pte = (pt_t *) get_pteaddr(frame_ind);
     int pid = frm_tab[frame_ind].fr_pid;
 
     // set by the hardware
@@ -200,7 +206,7 @@ SYSCALL write_dirty_frame(int frame_ind) {
         unsigned long pdbr = proctab[currpid].pdbr;
         unsigned int pd_offset = vpno>>10;
         pd_t *pde = (pd_t *) (pdbr + (long)pd_offset<<2);
-        write_bs((char *)(pde->pdbase), (bsd_t)store, page);
+        write_bs((char *)(pde->pd_base), (bsd_t)store, page);
     }
     return OK;
 }

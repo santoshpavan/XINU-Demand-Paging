@@ -40,6 +40,12 @@ typedef struct{
   unsigned int pd_offset : 10;		/* page directory offset	*/
 } virt_addr_t;
 
+/* list of processes for shared mapping */
+typedef struct shared_list {
+  int bs_pid;
+  struct shared_list *next;
+} shared_list;
+
 typedef struct{
   int bs_status;			/* MAPPED or UNMAPPED		*/
   int bs_pid;				/* process id using this slot   */
@@ -58,15 +64,6 @@ typedef struct{
   int fr_type;				/* FR_DIR, FR_TBL, FR_PAGE	*/
   int fr_dirty;
 } fr_map_t;
-
-extern bs_map_t bsm_tab[];
-extern fr_map_t frm_tab[];
-
-/* list of processes for shared mapping */
-typedef struct {
-  int bs_pid;
-  shared_list *next;
-} shared_list;
 
 /* Prototypes for required API calls */
 SYSCALL xmmap(int, bsd_t, int);
@@ -109,20 +106,23 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define PRESENT         1
 
 #ifndef NOT_PRIVATE
-#define NOT_PRIVATE	    0
+  #define NOT_PRIVATE	    0
 #endif
 
 #ifndef IS_PRIVATE
-#define IS_PRIVATE	    1
+  #define IS_PRIVATE	    1
 #endif
 
+bs_map_t bsm_tab[NBSM];
+fr_map_t frm_tab[NFRAMES];
+
 /* PSP: system calls for frames */
-SYSCALL init_frm();
-SYSCALL free_frm(int *);
-SYSCALL get_frm(int);
+SYSCALL init_frm(void);
+SYSCALL free_frm(int);
+SYSCALL get_frm(int *);
 
 /* PSP: syscalls for bsm */
-SYSCALL init_bsm();
+SYSCALL init_bsm(void);
 SYSCALL get_bsm(int *);
 SYSCALL free_bsm(int);
 SYSCALL bsm_lookup(int, long, int *, int *);
@@ -137,28 +137,28 @@ unsigned long read_cr4(void);
 void write_cr0(unsigned long);
 void write_cr3(unsigned long);
 void write_cr4(unsigned long);
-void enable_paging();
+void enable_paging(void);
 
 /* PSP: ISR - Page Fault Handler */
-void pfintr(void);
+SYSCALL pfintr(void);
 extern long pferrcode;
 
 /* PSP: the data structures for page replacement */
 #define MAX_AGE      255
 
 // for SC policy
-typedef struct {
+typedef struct sc_list {
   int ind;
-  sc_list* next;
+  struct sc_list* next;
 } sc_list;
 sc_list sc_head;
 sc_list sc_tail;
 
 // for Aging policy
-typedef struct {
+typedef struct ag_list {
   int ind;
   int age;
-  ag_list* next;
+  struct ag_list* next;
 } ag_list;
 ag_list ag_head;
 ag_list ag_tail;
@@ -167,11 +167,13 @@ ag_list ag_tail;
 SYSCALL srpolicy(int);
 SYSCALL grpolicy(void);
 void init_policy_lists(void);
-void add_sc_list(int frame_ind);
-void add_ag_list(int frame_ind);
+void add_sc_list(int);
+void add_ag_list(int);
 
 /* pfint.c */
-int replace_page(int, int);
+int replace_page(void);
 int check_acc(int);
 unsigned long get_pteaddr(int);
 SYSCALL write_dirty_frame(int);
+
+#define MAXNPG      256

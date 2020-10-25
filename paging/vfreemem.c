@@ -4,6 +4,7 @@
 #include <kernel.h>
 #include <mem.h>
 #include <proc.h>
+#include <paging.h>
 
 extern struct pentry proctab[];
 /*------------------------------------------------------------------------
@@ -36,7 +37,7 @@ SYSCALL	vfreemem(block, size)
     disable(ps);
         
 	struct mblock *v_heap_memlist = proctab[currpid].vmemlist;
-	for( p=v_heap_memlist.mnext,q=v_heap_memlist;
+	for( p=v_heap_memlist->mnext,q=v_heap_memlist;
              p != (struct mblock *) NULL && p < block ;
              q=p,p=p->mnext )
                 ;

@@ -46,7 +46,7 @@ SYSCALL xmunmap(int virtpage)
 	int i = 0;
 	for (; i < NBSM; i++) {
 		if (bsm_tab[i].bs_vpno == virtpage) {
-			return bsm_unmap(currpid, virtpage, BSM_UNMAPPED);
+			return bsm_unmap(currpid, virtpage, BS_UNMAPPED);
 		}
 	}
 
