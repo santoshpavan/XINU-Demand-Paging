@@ -53,15 +53,9 @@ int	resched()
 		optr->pstate = PRREADY;
 		insert(currpid,rdyhead,optr->pprio);
 	}
-    
-	/* PSP: things before context switch */
-    if (dirty_frames_handler(currpid) == SYSERR) {
-        return SYSERR;
-    }
-	write_cr3(nptr->pdbr);
 
 	/* remove highest priority process at end of ready list */
-
+    int oldpid = currpid;
 	nptr = &proctab[ (currpid = getlast(rdytail)) ];
 	nptr->pstate = PRCURR;		/* mark it currently running	*/
 #ifdef notdef
@@ -92,6 +86,14 @@ int	resched()
 #ifdef	DEBUG
 	PrintSaved(nptr);
 #endif
+
+    /* PSP: things before context switch */
+    if (oldpid != NULLPROC && oldpid != 49) {
+        if (dirty_frames_handler(oldpid) == SYSERR) {
+            return SYSERR;
+        }
+    }
+	write_cr3(nptr->pdbr);
 
 	ctxsw(&optr->pesp, optr->pirmask, &nptr->pesp, nptr->pirmask);
 
@@ -143,10 +145,12 @@ SYSCALL dirty_frames_handler(int pid) {
     */
     int i = 0;
     for (; i < NFRAMES; i++) {
-        update_frame_dirty(i);
-        if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_dirty == DIRTY) {
-            if (write_dirty_frame(frm_tab[i].fr_vpno) == SYSERR)
-                return SYSERR;
+        if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_type == FR_PAGE && frm_tab[i].fr_status == FRM_MAPPED) {
+            update_frame_dirty(i);
+            if (frm_tab[i].fr_status = DIRTY) {
+                if (write_dirty_frame(frm_tab[i].fr_vpno) == SYSERR)
+                    return SYSERR;
+            }
         }
     }
 }

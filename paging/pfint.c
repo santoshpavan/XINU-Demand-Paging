@@ -36,7 +36,7 @@ SYSCALL pfint()
       // checking if fault_addr is legal
       if (bsm_lookup(currpid, fault_addr, &store, &page) == SYSERR) {
           kprintf("\nInvalid faulted address. Killing Process %s(%d)\n", proctab[currpid].pname, currpid);
-          kill(currpid);
+          //kill(currpid);
           return SYSERR;
       }
 

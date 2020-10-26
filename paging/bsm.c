@@ -12,9 +12,6 @@
 SYSCALL init_bsm()
 {
     kprintf("---init bsm\n");
-    //bs_map_t *bsm_tab = (bs_map_t *)BACKING_STORE_BASE;
-	// there are 8 entries in bsm_tab
-	//bs_map_t bsm_tab[NBSM];
 	int i = 0;
 	for (; i < NBSM; i++) {
 		bsm_tab[i].bs_status = BS_UNMAPPED;
@@ -34,14 +31,15 @@ SYSCALL init_bsm()
 SYSCALL get_bsm(int* avail)
 {
 	/* 
- 	* intereate through the bsm_tab
+ 	* interate through the bsm_tab
  	* the first one that is available take it.
  	*/
     kprintf("getting bsm\n");
 	int i = 0;
 	for (; i < NBSM; i++) {
-		if (get_bs((bsd_t) i, *avail) != SYSERR) {
-			return i;
+		if (bsm_tab[i].bs_status == BS_UNMAPPED) {
+			*avail = i;
+            return OK;
 		}
 	}
     kprintf("getting bsm failed!!!\n");
@@ -75,22 +73,22 @@ SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
     check if vaddr is valid
     assign store and pageth values    
     */
-    kprintf("bsm lookup\n");
-    //TODO: multiple store mappings for a process
+    kprintf("bsm lookup!\n");
     if (vaddr < 0)
         return SYSERR;
     int bs_id = proctab[pid].store;
     // if processes has been unmapped
     if (bs_id == -1)
         return SYSERR;
-    if (vaddr <= bsm_tab[bs_id].bs_npages) {
+    //if (vaddr <= bsm_tab[bs_id].bs_npages) {
         *store = bs_id;
         // getting vpno from the vaddr
-        *pageth = vaddr>>12;
+        //*pageth = vaddr>>12;
+        *pageth = (int)(vaddr/NBPG) - bsm_tab[bs_id].bs_vpno;
         return OK;
-    }
-    kprintf("bsm lookup failed!!\n");
-    return SYSERR;
+    //}
+    //kprintf("bsm lookup failed!!\n");
+    //return SYSERR;
 }
 
 
@@ -139,8 +137,8 @@ SYSCALL bsm_unmap(int pid, int vpno, int flag)
     if (pid != currpid)
         return SYSERR;
 	int bs_ind = proctab[pid].store;
+    proctab[pid].store = -1;
     if (bsm_tab[bs_ind].pvt == IS_PRIVATE) {
-    	proctab[pid].store = -1;
     	bsm_tab[bs_ind].bs_status = BS_UNMAPPED;
     	bsm_tab[bs_ind].pvt = NOT_PRIVATE;
     }
