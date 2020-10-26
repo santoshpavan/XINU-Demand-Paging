@@ -99,9 +99,8 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
 	*pushsp = pptr->pesp = (unsigned long)saddr;
 
 	create_directory(pid);
-    write_cr3(proctab[pid].pdbr);
+    
 	restore(ps);
-    kprintf("done creating %s(%d)", proctab[currpid].pname, currpid);
 	return(pid);
 }
 
@@ -143,15 +142,9 @@ void create_directory(int pid) {
 	frm_ptr->fr_dirty = NOT_DIRTY;
 
     struct	pentry	*pptr = &proctab[pid];
-    //pptr->pdbr = (unsigned long) ((1024 * freeframe_ind) * 4096);
-    pptr->pdbr = (unsigned long) (NBPG * (freeframe_ind + FRAME0));
+    pptr->pdbr = (NBPG * (freeframe_ind + FRAME0));
     pptr->ppolicy = grpolicy();
-    /*
-    struct virt_addr_t = (struct virt_addr_t) (0);
-    frm_ptr->vpnp = (int) virt_addr_t;
-    */
     unsigned int pte_ind = 0;
-    //for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
     for (; pte_ind < 4; pte_ind++) {
         pd_t *pd_ptr = (pptr->pdbr + (sizeof(pd_t) * pte_ind));
         pd_ptr->pd_pres = 1;
@@ -164,13 +157,6 @@ void create_directory(int pid) {
         pd_ptr->pd_fmb = 0;
         pd_ptr->pd_global = 0;
         pd_ptr->pd_avail = 0;
-        //if (pte_ind < 4) {
-            // mapping global page tables
-            //pd_ptr->pd_pres = 1;
-            //pd_ptr->pd_write = 1;
-            //pd_ptr->pd_base = (unsigned int)((1025 + pte_ind) * 4096);
-            //pd_ptr->pd_base = (unsigned int)(1 + pte_ind);
-        pd_ptr->pd_base = (unsigned int)(pte_ind + FRAME0 + 1);
-        //}
+        pd_ptr->pd_base = (pte_ind + FRAME0 + 1);
    	}
 }
