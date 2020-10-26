@@ -31,7 +31,7 @@ SYSCALL pfint()
       unsigned int vpno = ;
       unsigned int offset = fault_addr.pg_offset;
       */
-      
+
       int store, page;
       // checking if fault_addr is legal
       if (bsm_lookup(currpid, fault_addr, &store, &page) == SYSERR) {
@@ -39,7 +39,7 @@ SYSCALL pfint()
           kill(currpid);
           return SYSERR;
       }
-      
+
       unsigned long proc_pdbr = proctab[currpid].pdbr;
 
       pd_t *fault_pde = (pd_t *) (proc_pdbr + (long)pt_no<<2);
@@ -49,12 +49,11 @@ SYSCALL pfint()
             if (get_frm(&freeframe_ind) == SYSERR) {
                 // perform page replacement to get the frame
                 freeframe_ind = replace_page();
-                /*
                 if (freeframe_ind == SYSERR) {
                     //TODO: Should I kill the process here?
                     return SYSERR;
                 }
-                */
+                
             }
             fr_map_t *avail_frame = &frm_tab[freeframe_ind];
             avail_frame->fr_status = FRM_MAPPED;
@@ -62,27 +61,27 @@ SYSCALL pfint()
             avail_frame->fr_type = FR_TBL;
             avail_frame->fr_dirty = NOT_DIRTY;
             // update the directory with the table's base value
-            fault_pde->pd_base = (freeframe_ind + FRAME0) * NBPG;
+            //fault_pde->pd_base = (freeframe_ind + FRAME0) * NBPG;
+            fault_pde->pd_base = freeframe_ind + FRAME0;
             fault_pde->pd_pres = PRESENT;
       }
-      
+
       /*
       case b: PTE DNE
       locate bs_id of the faulted page - use bsm_tab with procid and vaddr - bsm_lookup
       find free frame
       if no free frame, perform page replacement
       */
-      pt_t *fault_pte = (pt_t *) (fault_pde->pd_base + (long)pg_no<<2);
+      //pt_t *fault_pte = (pt_t *) (fault_pde->pd_base + (long)pg_no<<2);
+      pt_t *fault_pte = (pt_t *) ((fault_pde->pd_base) * NBPG + (long)pg_no<<2);
       int freeframe_ind;
       if (get_frm(&freeframe_ind) == SYSERR) {
               // perform page replacement to get the frame
               freeframe_ind = replace_page();
-              /*
               if (freeframe_ind == SYSERR) {
                   //TODO: Should I kill the process here?
                   return SYSERR;
               }
-              */
               if (write_dirty_frame(freeframe_ind) == SYSERR)
                   return SYSERR;
       }
@@ -93,11 +92,12 @@ SYSCALL pfint()
       avail_frame->fr_refcnt++;
       avail_frame->fr_dirty = NOT_DIRTY;
       avail_frame->fr_type = FR_PAGE;
-            
-      read_bs((char *)((freeframe_ind + FRAME0) * NBPG), (bsd_t)store, page);
-      
+
+      read_bs((char *)((freeframe_ind) * NBPG), (bsd_t)store, page);
+
       // update the directory with the table's base value
-      fault_pte->pt_base = (freeframe_ind + FRAME0) * NBPG;
+      //fault_pte->pt_base = (freeframe_ind + FRAME0) * NBPG;
+      fault_pte->pt_base = freeframe_ind + FRAME0;
       fault_pte->pt_pres = PRESENT;
       
       return OK;
@@ -149,7 +149,7 @@ int replace_page() {
         prev->next = clock_hand->next;
         clock_hand->next = NULL;
     }
-    
+
     pt_t *pte = (pt_t *) get_pteaddr(frame_ind);
     pte->pt_pres = NOT_PRESENT;
     //TODO: multiple processes for shared bs
@@ -166,7 +166,7 @@ int replace_page() {
         pd_t *pde = (pd_t *) (pdbr + (long)pd_offset<<2);
         pde->pd_pres = NOT_PRESENT;
     }
-    
+
     return frame_ind;
 }
 
@@ -187,7 +187,8 @@ unsigned long get_pteaddr(int frame_ind) {
     unsigned int pt_offset = (vpno<<10)>>10;
     unsigned long pdbr = proctab[frm_tab[frame_ind].fr_pid].pdbr;
     pd_t *pde = (pd_t *) (pdbr + (long)pd_offset<<2);
-    return (pde->pd_base + (long)pt_offset<<2);
+    //return (pde->pd_base + (long)pt_offset<<2);
+    return ((pde->pd_base) * NBPG + (long)pt_offset<<2);
 }
 
 SYSCALL write_dirty_frame(int frame_ind) {
@@ -206,7 +207,8 @@ SYSCALL write_dirty_frame(int frame_ind) {
         unsigned long pdbr = proctab[currpid].pdbr;
         unsigned int pd_offset = vpno>>10;
         pd_t *pde = (pd_t *) (pdbr + (long)pd_offset<<2);
-        write_bs((char *)(pde->pd_base), (bsd_t)store, page);
+        //write_bs((char *)(pde->pd_base), (bsd_t)store, page);
+        write_bs((char *)((pde->pd_base) * NBPG), (bsd_t)store, page);
     }
     return OK;
 }

@@ -16,13 +16,13 @@ SYSCALL init_frm()
 	int i = 0;
 	for(; i < NFRAMES; i++) {
 		frm_tab[i].fr_status = FRM_UNMAPPED;
-        frm_tab[i].fr_pid = -1;			
-        frm_tab[i].fr_vpno = -1;			
-        frm_tab[i].fr_refcnt = 0;			
-        //frm_tab[i].fr_type;				
+        frm_tab[i].fr_pid = -1;
+        frm_tab[i].fr_vpno = -1;
+        frm_tab[i].fr_refcnt = 0;
+        frm_tab[i].fr_refcnt = 0;
+        //frm_tab[i].fr_type;
         frm_tab[i].fr_dirty = NOT_DIRTY;
 	}
-    kprintf("--done init frame!\n");
 	return OK;
 }
 

@@ -73,7 +73,7 @@ int page_replace_policy = SC;
  */
 nulluser()				/* babysit CPU when no one is home */
 {
-        int userpid;
+    int userpid;
 
 	console_dev = SERIAL0;		/* set console to COM0 */
 
@@ -136,7 +136,7 @@ sysinit()
 	struct	sentry	*sptr;
 	struct	mblock	*mptr;
 	SYSCALL pfintr();	
-
+    
 	numproc = 0;			/* initialize system variables */
 	nextproc = NPROC-1;
 	nextsem = NSEM-1;
@@ -187,14 +187,6 @@ sysinit()
 	}
 #endif
 
-	/* PSP: initializing things */
-    kprintf("sys init...\n");    
-    init_bsm();
-    init_frm();
- 	set_evec(PF_INTERRUPT, pfintr);
-    enable_paging();
-    init_policy_lists();
-    
 	pptr = &proctab[NULLPROC];	/* initialize null process entry */
 	pptr->pstate = PRCURR;
 	for (j=0; j<7; j++)
@@ -211,18 +203,27 @@ sysinit()
 	pptr->pargs = 0;
 	pptr->pprio = 0;
 	currpid = NULLPROC;
-	
-	/*PSP: global page tables and outer table for nullproc*/
-	create_global_pg_tables();
-	create_null_proc_pd();
-	pptr->pdbr = (unsigned long)(1024 * 4096);	
- 
+
 	for (i=0 ; i<NSEM ; i++) {	/* initialize semaphores */
 		(sptr = &semaph[i])->sstate = SFREE;
 		sptr->sqtail = 1 + (sptr->sqhead = newqueue());
 	}
 
 	rdytail = 1 + (rdyhead=newqueue());/* initialize ready list */	
+
+	/* PSP: initializing things */
+    kprintf("sys init...\n");
+    init_frm();
+    init_bsm();
+ 	set_evec(PF_INTERRUPT, pfintr);
+
+	/*PSP: global page tables and outer table for nullproc*/
+    create_null_proc_pd();
+	pptr->pdbr = (unsigned long)(FRAME0 * NBPG);
+	create_global_pg_tables();
+    write_cr3(pptr->pdbr);
+    enable_paging();
+    init_policy_lists();
 
 	return(OK);
 }
@@ -285,18 +286,21 @@ void create_global_pg_tables() {
     in the same mem location update the PTE variables
     */
     unsigned int page_no = 0;
-    int pg = 0;
-    for (; page_no < N_GLOBAL_PT + 1; page_no++) {
+    //for (; page_no < N_GLOBAL_PT + 1; page_no++) {
+    for (; page_no < 4; page_no++) {
         //fr_map_t *frm_ptr = (fr_map_t *)(((1025 + page_no) * 4096) + 1);
-        fr_map_t *frm_ptr = &frm_tab[page_no + 1];
+        //fr_map_t *frm_ptr = &frm_tab[page_no + 1];
+        fr_map_t *frm_ptr = &frm_tab[page_no];
         frm_ptr->fr_status = FRM_MAPPED;
-        frm_ptr->fr_pid = 100; // all the processes
+        frm_ptr->fr_pid = 0; // all the processes
     	frm_ptr->fr_refcnt = 0;
     	frm_ptr->fr_type = FR_TBL;
     	frm_ptr->fr_dirty = NOT_DIRTY;
         unsigned int pte_ind = 0;
+        //pt_t *pt_ptr = (pt_t *) ((FRAME0 + page_no) * NBPG);
         for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
-              pt_t *pt_ptr = (pt_t *) (((1025 + page_no) * 4096) + pte_ind<<2);
+              //pt_t *pt_ptr = (pt_t *) (((1025 + page_no) * NBPG) + pte_ind<<2);
+              pt_t *pt_ptr = (((FRAME0 + page_no + 1) * NBPG) + (sizeof(pt_t) * pte_ind));
               pt_ptr->pt_pres = 1;
               pt_ptr->pt_write = 1;
               pt_ptr->pt_user = 0;
@@ -307,9 +311,13 @@ void create_global_pg_tables() {
               pt_ptr->pt_mbz = 0;
               pt_ptr->pt_global = 1;
               pt_ptr->pt_avail = 0;
-              pt_ptr->pt_base = (unsigned int)(pg * 4096);
-              pg++;
+              //pt_ptr->pt_base = (unsigned int)(pg * 4096);
+              pt_ptr->pt_base = (unsigned int)((page_no * FRAME0) + pte_ind);
+              //kprintf("%d\n", (page_no * FRAME0) + pte_ind);
+              //pg++;
+              //pt_ptr++;
         }
+        //kprintf("****************\n");
     }
 }
 
@@ -326,10 +334,12 @@ void create_null_proc_pd() {
     frm_ptr->vpnp = (int) virt_addr_t;
     */
     unsigned int pte_ind = 0;
-    for (; pte_ind < 1024; pte_ind++) {
-        pd_t *pd_ptr = (pd_t *) ((1024 * 4096) + pte_ind<<2);
-        pd_ptr->pd_pres = 0;
-        pd_ptr->pd_write = 0;
+    //pd_t *pd_ptr = (pd_t *) ((FRAME0 + 4) * NBPG);
+    //for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
+    for (; pte_ind < 4; pte_ind++) {
+        pd_t *pd_ptr = ((FRAME0 * NBPG) + (sizeof(pd_t)*pte_ind));
+        pd_ptr->pd_pres = 1;
+        pd_ptr->pd_write = 1;
         pd_ptr->pd_user = 0;
         pd_ptr->pd_pwt = 0;
         pd_ptr->pd_pcd = 0;
@@ -338,10 +348,8 @@ void create_null_proc_pd() {
         pd_ptr->pd_fmb = 0;
         pd_ptr->pd_global = 0;
         pd_ptr->pd_avail = 0;
-        if (pte_ind < 4) {
-            pd_ptr->pd_pres = 1;
-            pd_ptr->pd_write = 1;
-            pd_ptr->pd_base = (unsigned int)((1025 + pte_ind) * 4096);
-        }
+        pd_ptr->pd_base = (unsigned int)(pte_ind + FRAME0 + 1);
+        //kprintf("%d\n", (pte_ind + FRAME0));
+        //kprintf("%d\n", pd_ptr/NBPG);
    	}
 }
