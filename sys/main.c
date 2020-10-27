@@ -139,6 +139,7 @@ void proc1_test3(int i,int* ret) {
 	get_bs(i, 100);
 
 	if (xmmap(MYVPNO1, i, 100) == SYSERR) {
+        kprintf("\nxmmap failed! for %d", currpid);
 	    *ret = TFAILED;
 	    return 0;
 	}
@@ -166,6 +167,7 @@ void test3() {
 	for(i=0;i < MAX_BSTORE;i++){
 		pids[i] = create(proc1_test3, 2000, 20, "proc1_test3", 2, i,&ret);
 		if (pids[i] == SYSERR){
+            kprintf("\n creation failed for %d", pids[i]);
 			ret = TFAILED;
 		}else{
 			resume(pids[i]);
@@ -173,8 +175,10 @@ void test3() {
 	}
 	sleep(1);
 	mypid = vcreate(proc2_test3, 2000, 100, 20, "proc2_test3", 0, NULL);
-	if (mypid != SYSERR)
-		ret = TFAILED;
+	if (mypid != SYSERR) {
+		kprintf("private accessed!\n");
+        ret = TFAILED;
+    }
 
 	for(i=0;i < MAX_BSTORE;i++){
 		kill(pids[i]);
@@ -368,7 +372,7 @@ void proc1_test6(int *ret) {
 		get_bs(i, 127);
 		if (xmmap(vpno, i, 127) == SYSERR) {
 			*ret = TFAILED;
-			kprintf("xmmap call failed\n");
+			kprintf("xmmap call failed 111\n");
 			sleep(3);
 			return;
 		}
@@ -630,6 +634,13 @@ int main() {
     	   test3();
         //    break;
         // case 4:
+          //cehcking
+          /*
+          i=0;
+          for(; i < 8; i++) {
+              kprintf("status(%d): %d and pvt: %d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt);
+          }
+          */
     	   test4();
         //    break;
         // case 5:

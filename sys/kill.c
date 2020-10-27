@@ -68,8 +68,8 @@ SYSCALL kill(int pid)
     clear paging lists - unmap those frames
     */
     //kprintf("\nkilling proc %s (%d)\n", proctab[pid].pname, pid);
-    release_bs(proctab[currpid].store);
-    free_frames_on_kill(currpid);
+    release_bs(proctab[pid].store);
+    //free_frames_on_kill(currpid);
     
     restore(ps);
 	return(OK);
@@ -79,16 +79,21 @@ void free_frames_on_kill(int pid) {
     /*
     traverse through the list acc to the paging policy
     delete if pid == currpid
+    write to bs if it's a dirty frame
     reset frame for that same frameid
     */
     kprintf("freeing frames on kill\n");
     if (grpolicy() == AGING) {
+        kprintf("AG Policy!\n");
         ag_list *hand = ag_tail.next;
         ag_list *prev = &ag_tail;
         while(hand != NULL) {
             if (frm_tab[hand->ind].fr_pid == pid) {
                 prev->next = hand->next;
+                
+                write_dirty_frame(hand->ind);
                 free_frm(hand->ind);
+                
                 hand = hand->next;
             }
             else {
@@ -98,12 +103,16 @@ void free_frames_on_kill(int pid) {
         }
     }
     else {
+        kprintf("SC Policy!\n");
         sc_list *clock_hand = sc_head.next;
         sc_list *prev = &sc_head;
-        while (clock_hand != sc_tail.next) {
+        while (clock_hand->ind != sc_tail.next->ind) {
             if (frm_tab[clock_hand->ind].fr_pid == pid) {   
                 prev->next = clock_hand->next;
+                kprintf("doing the deed!\n");
+                write_dirty_frame(clock_hand->ind);
                 free_frm(clock_hand->ind);
+                
                 clock_hand = clock_hand->next;
             }
             else {

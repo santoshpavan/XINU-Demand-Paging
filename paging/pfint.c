@@ -20,7 +20,7 @@ SYSCALL pfint()
       check if directory has the page 
       */
       unsigned long fault_addr = read_cr2();
-      //kprintf("faulting for %d at: %lu\n", currpid, fault_addr);
+      kprintf("faulting for %d at: %lu\n", currpid, fault_addr);
       unsigned long pt_no = fault_addr>>22;
       unsigned long vpno = fault_addr>>12;
       unsigned long pg_no = vpno & 0x003FF;
@@ -203,7 +203,7 @@ unsigned long get_pteaddr(int frame_ind) {
 }
 
 SYSCALL write_dirty_frame(int frame_ind) {
-    //kprintf("writing dirty frames...\n");
+    kprintf("writing dirty frame...%d\n", frame_ind);
     unsigned long vpno = frm_tab[frame_ind].fr_vpno;
     pt_t *pte = (pt_t *) get_pteaddr(frame_ind);
     int pid = frm_tab[frame_ind].fr_pid;

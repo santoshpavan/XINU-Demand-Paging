@@ -63,6 +63,9 @@ SYSCALL get_frm(int* avail)
 SYSCALL free_frm(int i)
 {
     //kprintf("---Freeing frame!\n");
+    write_dirty_frame(i);
     frm_tab[i].fr_status = FRM_UNMAPPED;
+    frm_tab[i].fr_vpno = -1;
+    frm_tab[i].fr_pid = -1;
     return OK;
 }

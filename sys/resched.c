@@ -144,6 +144,7 @@ SYSCALL dirty_frames_handler(int pid) {
     update dirty of frm_tab if pt_t is dirty
     if frm_tab belongs to this processes and is dirty then write it
     */
+    kprintf("dirty frames ctxsw\n");
     int i = 0;
     for (; i < NFRAMES; i++) {
         if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_type == FR_PAGE && frm_tab[i].fr_status == FRM_MAPPED) {

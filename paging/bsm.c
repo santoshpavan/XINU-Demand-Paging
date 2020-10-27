@@ -54,13 +54,14 @@ SYSCALL get_bsm(int* avail)
 SYSCALL free_bsm(int i)
 {
 	// called when the BS is private and reset everything
-    //kprintf("free bsm\n");
+    kprintf("free bsm %d\n", i);
 	bsm_tab[i].bs_status = BS_UNMAPPED;
     bsm_tab[i].bs_pid = -1;
     bsm_tab[i].bs_npages = 0;
     bsm_tab[i].pvt = NOT_PRIVATE;
     bsm_tab[i].bs_vpno = -1;
     proctab[currpid].store = -1;
+    return OK;    
 }
 
 /*-------------------------------------------------------------------------
@@ -78,7 +79,6 @@ SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
     if (vaddr < 0)
         return SYSERR;
     int bs_id = proctab[pid].store;
-    //kprintf("bsm lookup! pid%d store:%d\n", pid, bs_id);
     // if processes has been unmapped
     if (bs_id == -1)
         return SYSERR;
@@ -87,6 +87,7 @@ SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
         // getting vpno from the vaddr
         //*pageth = vaddr>>12;
         *pageth = (int)(vaddr/NBPG) - bsm_tab[bs_id].bs_vpno;
+    kprintf("bsm lookup! pid:%d store:%d pageth:%d\n", pid, bs_id, *pageth);                
         return OK;
     //}
     //kprintf("bsm lookup failed!!\n");
@@ -112,6 +113,7 @@ SYSCALL bsm_map(int pid, int vpno, int source, int npages)
     bsm_tab[source].bs_vpno = vpno;
     //kprintf("3*********\n");
     proctab[pid].store = source;
+    proctab[pid].vhpno = vpno;
     //kprintf("4*********\n");
     //if (proctab[pid].pvt == IS_PRIVATE) {
         bsm_tab[source].bs_pid = pid;
@@ -147,19 +149,35 @@ SYSCALL bsm_map(int pid, int vpno, int source, int npages)
  */
 SYSCALL bsm_unmap(int pid, int vpno, int flag)
 {
-    //kprintf("bsm unmapping\n");
+    kprintf("bsm unmapping pid: %d\n", currpid);
 	
     if (pid != currpid)
         return SYSERR;
-	//int bs_ind = proctab[pid].store;
+	int bs_ind = proctab[pid].store;
     proctab[pid].store = -1;
-    //if (bsm_tab[bs_ind].pvt == IS_PRIVATE) {
-    	//bsm_tab[bs_ind].bs_status = BS_UNMAPPED;
-    	//bsm_tab[bs_ind].pvt = NOT_PRIVATE;
-    /*}
+    proctab[pid].vhpno = -1;
+    if (bsm_tab[bs_ind].pvt == IS_PRIVATE) {
+    	bsm_tab[bs_ind].bs_status = BS_UNMAPPED;
+    	bsm_tab[bs_ind].pvt = NOT_PRIVATE;
+    }
     else{
-        // shared bs unmapping
-        shared_list *ptr = bsm_tab[bs_ind].bs_pids;
+        // check if any other process is mapped to this store
+        int proc_id = 1; //ignore NULLPROC and MAIN
+        int count = 0;
+        for (; proc_id < NPROC; proc_id++) {
+            if (proc_id != pid && proctab[proc_id].store == bs_ind) {
+                count++;
+                if (count >= 1) {
+                    break;
+                }
+            }
+        }
+        if (count == 0) {
+            // the last proc in this shared store
+            free_bsm(bs_ind);
+        }
+                                
+        /*shared_list *ptr = bsm_tab[bs_ind].bs_pids;
         shared_list *prev = NULL;
         while (ptr != NULL) {
             if (ptr->bs_pid == pid) {
@@ -169,7 +187,7 @@ SYSCALL bsm_unmap(int pid, int vpno, int flag)
             }
             prev = ptr;
             ptr = ptr->next;
-        }
-    }*/
+        }*/
+    }
 	return OK;
 }

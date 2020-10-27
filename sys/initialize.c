@@ -166,9 +166,11 @@ sysinit()
 			NULLSTK);
 	}
 	
-
-	for (i=0 ; i<NPROC ; i++)	/* initialize process table */
+    /* initialize process table */
+	for (i=0 ; i<NPROC ; i++) {
 		proctab[i].pstate = PRFREE;
+		proctab[i].store = -1;
+    }
 
 
 #ifdef	MEMMARK
