@@ -5,7 +5,7 @@
 
 SYSCALL release_bs(bsd_t bs_id) {
 	/* release the backing store with ID bs_id */
-	kprintf("---release_bs!\n");
+	//kprintf("---release_bs!\n");
 	
 	/*
  	* depends on shared or private
@@ -17,13 +17,14 @@ SYSCALL release_bs(bsd_t bs_id) {
 		if (bsm_tab[bs_ind].bs_pid == currpid)
 			return free_bsm(bs_ind);
 		else
-			return SYSERR;
+		    proctab[currpid].store = -1;
+            //return SYSERR;
 	}
-    else {
-		/*
+    /*else {
+		
         traverse through the shared_list in bsm_tab
         if found the mapping with this procid, then unmap it
-        */
+        
         shared_list *ptr = bsm_tab[bs_ind].bs_pids;
         shared_list *prev = NULL;
         while (ptr != NULL) {
@@ -35,6 +36,6 @@ SYSCALL release_bs(bsd_t bs_id) {
             prev = ptr;
             ptr = ptr->next;
         }
-	}
+	}*/
    	return SYSERR;
 }

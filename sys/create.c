@@ -25,8 +25,7 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
 	long	args;			/* arguments (treated like an	*/
 					/* array in the code)		*/
 {
-    kprintf("creating process...\n");
-	unsigned long	savsp, *pushsp;
+    unsigned long	savsp, *pushsp;
 	STATWORD 	ps;    
 	int		pid;		/* stores new process id	*/
 	struct	pentry	*pptr;		/* pointer to proc. table entry */
@@ -129,9 +128,9 @@ void create_directory(int pid) {
  	* put directory there
  	* frame mapping
  	*/
-    kprintf("creating directory for process...\n");
+    //kprintf("creating directory for process...\n");
 	int freeframe_ind;
-    if (get_frm(freeframe_ind) == SYSERR) {
+    if (get_frm(&freeframe_ind) == SYSERR) {
         freeframe_ind = replace_page();
     }
     fr_map_t *frm_ptr = &frm_tab[freeframe_ind];
@@ -143,10 +142,13 @@ void create_directory(int pid) {
 
     struct	pentry	*pptr = &proctab[pid];
     pptr->pdbr = (NBPG * (freeframe_ind + FRAME0));
+    //kprintf("created %d with pdbr at %d (%d)\n", pid, pptr->pdbr, freeframe_ind);
     pptr->ppolicy = grpolicy();
+    pptr->store = -1;
+    
     unsigned int pte_ind = 0;
     for (; pte_ind < 4; pte_ind++) {
-        pd_t *pd_ptr = (pptr->pdbr + (sizeof(pd_t) * pte_ind));
+        pd_t *pd_ptr = (pptr->pdbr + (pte_ind*4));
         pd_ptr->pd_pres = 1;
         pd_ptr->pd_write = 1;
         pd_ptr->pd_user = 0;

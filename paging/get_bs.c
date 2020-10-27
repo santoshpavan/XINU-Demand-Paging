@@ -14,7 +14,7 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
     if mapped and shared then bs_npages
     if unmapped then npages
     */
-    kprintf("---get_bs!\n");
+    //kprintf("---get_bs!\n");
 	int bs_ind = (int)bs_id;
 	if (npages <= 0 || npages > MAX_BST_SIZE || bs_ind < 0 || bs_ind >= NBSM ) {
 		return SYSERR;
@@ -24,7 +24,7 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
         if (bsmap->pvt == IS_PRIVATE)
             return SYSERR;
         else
-            return bsmap->bs_npages;
+            return bsmap->bs_npages;//assgined
     }
     else
         return npages;

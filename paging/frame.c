@@ -8,9 +8,11 @@
  * init_frm - initialize frm_tab
  *-------------------------------------------------------------------------
  */
+STATWORD ps;
 SYSCALL init_frm()
 {
-	kprintf("---init frame!\n");
+    disable(ps);
+	//kprintf("---init frame!\n");
     // pointing to the 1024th page beginning
 	//fr_map_t frm_tab[NFRAMES];
 	int i = 0;
@@ -23,6 +25,7 @@ SYSCALL init_frm()
         //frm_tab[i].fr_type;
         frm_tab[i].fr_dirty = NOT_DIRTY;
 	}
+    restore(ps);
 	return OK;
 }
 
@@ -32,24 +35,24 @@ SYSCALL init_frm()
  */
 SYSCALL get_frm(int* avail)
 {
-    kprintf("---getting frame!!!\n");
+    disable(ps);
+    //kprintf("---getting frame!!!\n");
     /*
     perform a linear search in the frm_tab to look for unmapped.
     after getting add to the global data structure based on the replacement policy
     */
     int i = 0;
     for (; i < NFRAMES; i++) {
+        //kprintf("****index: %d, status: %d\n", i, frm_tab[i].fr_status);
         if (frm_tab[i].fr_status == FRM_UNMAPPED) {
             *avail = i;
-            if (grpolicy() == SC) {
-                add_sc_list(i);
-            }
-            else {
-                add_ag_list(i);
-            }
+            //kprintf("\n---avail: %d and index: %d\n", (FRAME0+i)*NBPG, i);
+            add_to_policy_list(i);
+            restore(ps);
             return OK;
         }
     }
+    restore(ps);
     return SYSERR;
 }
 
@@ -59,7 +62,7 @@ SYSCALL get_frm(int* avail)
  */
 SYSCALL free_frm(int i)
 {
-    kprintf("---Freeing frame!\n");
+    //kprintf("---Freeing frame!\n");
     frm_tab[i].fr_status = FRM_UNMAPPED;
     return OK;
 }

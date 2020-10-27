@@ -93,6 +93,7 @@ int	resched()
             return SYSERR;
         }
     }
+    //kprintf("oldpid: %d, ----- currpid:%d\n", oldpid, currpid);
 	write_cr3(nptr->pdbr);
 
 	ctxsw(&optr->pesp, optr->pirmask, &nptr->pesp, nptr->pirmask);

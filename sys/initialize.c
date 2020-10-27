@@ -212,12 +212,12 @@ sysinit()
 	rdytail = 1 + (rdyhead=newqueue());/* initialize ready list */	
 
 	/* PSP: initializing things */
-    kprintf("sys init...\n");
+    //kprintf("sys init...\n");
     init_frm();
     init_bsm();
  	set_evec(PF_INTERRUPT, pfintr);
     init_policy_lists();
-
+    
     create_global_pg_tables();
     create_null_proc_pd();
     pptr->pdbr = FRAME0*NBPG;
@@ -295,7 +295,7 @@ void create_global_pg_tables() {
     	frm_ptr->fr_dirty = NOT_DIRTY;
         unsigned int pte_ind = 0;
         for (; pte_ind < MAX_FRAME_SIZE; pte_ind++) {
-              pt_t *pt_ptr = (((FRAME0 + page_no) * NBPG) + (pte_ind<<2));
+              pt_t *pt_ptr = (((FRAME0 + page_no) * NBPG) + (pte_ind*4));
               pt_ptr->pt_pres = 1;
               pt_ptr->pt_write = 1;
               pt_ptr->pt_user = 0;
@@ -321,7 +321,7 @@ void create_null_proc_pd() {
 	frm_ptr->fr_dirty = NOT_DIRTY;
     unsigned int pte_ind = 0;
     for (; pte_ind < 4; pte_ind++) {
-        pd_t *pd_ptr = ((FRAME0 * NBPG) + (pte_ind<<2));
+        pd_t *pd_ptr = ((FRAME0 * NBPG) + (pte_ind*4));
         pd_ptr->pd_pres = 1;
         pd_ptr->pd_write = 1;
         pd_ptr->pd_user = 0;

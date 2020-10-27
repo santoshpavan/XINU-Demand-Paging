@@ -28,31 +28,43 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	long	args;			/* arguments (treated like an	*/
 					/* array in the code)		*/
 {
-	kprintf("----CREATING PROCESS - vcreate\n");
-    int pid = create(procaddr,ssize,priority,name,nargs,args);
-    if (pid == SYSERR)
-        return SYSERR;
+
     STATWORD        ps;
 	disable(ps);
-	/*
- 	* get bs from get_bsm
+	//kprintf("----CREATING PROCESS - vcreate\n");
+    int pid = create(procaddr,ssize,priority,name,nargs,args);
+    
+    //kprintf("\ncreated....\n");
+    if (pid == SYSERR)
+        return SYSERR;
+	
+ 	/* 
+    * get bs from get_bsm
 	* make it private
 	* map that bs using bsm_map
 	* do not call xmmap here
 	*/
 	proctab[pid].pvt = IS_PRIVATE;
 	int bs_id;
-    get_bsm(bs_id);
+    if (get_bsm(&bs_id) == SYSERR)
+        return SYSERR;
+    //kprintf("getbsm done!\n");    
 	bsm_tab[bs_id].pvt = IS_PRIVATE;
-	proctab[pid].store = bs_id;
-	proctab[pid].vhpnpages = hsize;
-    proctab[pid].vmemlist->mlen = hsize*NBPG;
-    proctab[pid].vmemlist->mnext = (struct mblock*) (BACKING_STORE_BASE + bs_id*BACKING_STORE_UNIT_SIZE);
-	//proctab[pid].vhpno = ;// starting pageno for heap-impl in get_bsm
 	bsm_map(pid, (int)procaddr>>12, bs_id, hsize);
+    proctab[pid].store = bs_id;
+	proctab[pid].vhpnpages = hsize;
+    //proctab[pid].vmemlist->mlen = hsize*NBPG;
+    //kprintf("
+    struct mblock *mptr;
+    mptr = (struct mblock*) (roundmb(BACKING_STORE_BASE + bs_id*BACKING_STORE_UNIT_SIZE));
+	proctab[pid].vmemlist->mnext = mptr;        
+    mptr->mnext = 0;
+    mptr->mlen = hsize*NBPG;
+    //proctab[pid].vhpno = ;// starting pageno for heap-impl in get_bsm
 
-	restore(ps);	
-	return OK;
+    //kprintf("bsm map done!\n");
+	restore(ps);
+	return pid;
 }
 
 /*------------------------------------------------------------------------

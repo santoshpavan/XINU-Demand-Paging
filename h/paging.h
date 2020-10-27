@@ -49,7 +49,7 @@ typedef struct shared_list {
 typedef struct{
   int bs_status;			/* MAPPED or UNMAPPED		*/
   int bs_pid;				/* process id using this slot   */
-  shared_list *bs_pids;
+  //shared_list *bs_pids;
   int bs_vpno;				/* starting virtual page number */
   int bs_npages;			/* no of pages in the store used*/
   int bs_sem;				/* semaphore mechanism ?	*/
@@ -169,6 +169,7 @@ SYSCALL grpolicy(void);
 void init_policy_lists(void);
 void add_sc_list(int);
 void add_ag_list(int);
+void add_to_policy_list(int);
 
 /* pfint.c */
 int replace_page(void);
@@ -176,4 +177,6 @@ int check_acc(int);
 unsigned long get_pteaddr(int);
 SYSCALL write_dirty_frame(int);
 
-#define MAXNPG      256
+#ifndef MAXNPG
+  #define MAXNPG      256
+#endif

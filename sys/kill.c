@@ -43,14 +43,6 @@ SYSCALL kill(int pid)
 	send(pptr->pnxtkin, pid);
 
 	freestk(pptr->pbase, pptr->pstklen);
-		
-    /*PSP: clearing things belonging to the process before death */
-    /*
-    clear bs: i.e. frm_tab unmapping
-    clear paging lists - unmap those frames
-    */
-    release_bs(proctab[currpid].store);
-    free_frames_on_kill(currpid);
     
     switch (pptr->pstate) {
     	case PRCURR:	pptr->pstate = PRFREE;	/* suicide */
@@ -68,6 +60,17 @@ SYSCALL kill(int pid)
     	default:	pptr->pstate = PRFREE;
 	}
     
+    
+    		
+    /*PSP: clearing things belonging to the process before death */
+    /*
+    clear bs: i.e. frm_tab unmapping
+    clear paging lists - unmap those frames
+    */
+    //kprintf("\nkilling proc %s (%d)\n", proctab[pid].pname, pid);
+    release_bs(proctab[currpid].store);
+    free_frames_on_kill(currpid);
+    
     restore(ps);
 	return(OK);
 }
@@ -78,6 +81,7 @@ void free_frames_on_kill(int pid) {
     delete if pid == currpid
     reset frame for that same frameid
     */
+    kprintf("freeing frames on kill\n");
     if (grpolicy() == AGING) {
         ag_list *hand = ag_tail.next;
         ag_list *prev = &ag_tail;

@@ -12,7 +12,7 @@ extern int page_replace_policy;
  */
 SYSCALL srpolicy(int policy)
 {
-	kprintf("---setting policy!\n");
+	//kprintf("---setting policy!\n");
     if (policy != SC || policy != AGING)
         return SYSERR;
 	page_replace_policy = policy;
@@ -30,7 +30,7 @@ SYSCALL grpolicy()
 
 /* PSP: paging policy functions */
 void init_policy_lists() {
-    kprintf("init policy lists...\n");
+    //kprintf("init policy lists...\n");
     // SC Policy
     sc_head.ind = -1;
     sc_head.next = NULL;
@@ -69,3 +69,12 @@ void add_ag_list(int frame_ind) {
     ag_tail.next = &node;
 }
 /* removing elements implemented in the replace_page function */
+
+void add_to_policy_list(int frame_ind) {
+    if (grpolicy() == SC) {
+        add_sc_list(frame_ind);
+    }
+    else {
+        add_ag_list(frame_ind);
+    }
+}
