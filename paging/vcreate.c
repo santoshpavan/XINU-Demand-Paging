@@ -31,12 +31,13 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 
     STATWORD        ps;
 	disable(ps);
-	//kprintf("----CREATING PROCESS - vcreate\n");
+	kprintf("----CREATING PROCESS - vcreate\n");
     int pid = create(procaddr,ssize,priority,name,nargs,args);
     
-    //kprintf("\ncreated....\n");
-    if (pid == SYSERR)
+    if (pid == SYSERR) {
+        kprintf("\ncreate failed....\n");
         return SYSERR;
+    }
 	
  	/* 
     * get bs from get_bsm
@@ -44,14 +45,17 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	* map that bs using bsm_map
 	* do not call xmmap here
 	*/
+    kprintf("Process %d created\n", pid);
 	proctab[pid].pvt = IS_PRIVATE;
 	int bs_id;
-    if (get_bsm(&bs_id) == SYSERR)
+    if (get_bsm(&bs_id) == SYSERR) {
+        kprintf("\nget_bsm failed!\n");
         return SYSERR;
-    //kprintf("getbsm done!\n");    
-	bsm_tab[bs_id].pvt = IS_PRIVATE;
+    }
+    bsm_tab[bs_id].pvt = IS_PRIVATE;
+    kprintf("addr: %d vpno: %d", (int)procaddr, (int)procaddr>>12);
 	bsm_map(pid, (int)procaddr>>12, bs_id, hsize);
-    proctab[pid].store = bs_id;
+    //proctab[pid].store = bs_id; impl in bsm_map!
 	proctab[pid].vhpnpages = hsize;
     //proctab[pid].vmemlist->mlen = hsize*NBPG;
     //kprintf("
@@ -60,9 +64,9 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	proctab[pid].vmemlist->mnext = mptr;        
     mptr->mnext = 0;
     mptr->mlen = hsize*NBPG;
-    //proctab[pid].vhpno = ;// starting pageno for heap-impl in get_bsm
+    //proctab[pid].vhpno = ;// starting pageno for heap-impl in get_bsm!
 
-    //kprintf("bsm map done!\n");
+    kprintf("bsm map done! VCreate completed!\n");
 	restore(ps);
 	return pid;
 }

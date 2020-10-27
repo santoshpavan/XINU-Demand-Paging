@@ -125,7 +125,7 @@ SYSCALL get_frm(int *);
 SYSCALL init_bsm(void);
 SYSCALL get_bsm(int *);
 SYSCALL free_bsm(int);
-SYSCALL bsm_lookup(int, long, int *, int *);
+SYSCALL bsm_lookup(int, unsigned long, int *, int *);
 SYSCALL bsm_map(int, int, int, int);
 SYSCALL bsm_unmap(int, int, int);
 

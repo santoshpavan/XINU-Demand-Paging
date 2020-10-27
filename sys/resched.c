@@ -147,10 +147,12 @@ SYSCALL dirty_frames_handler(int pid) {
     kprintf("dirty frames ctxsw\n");
     int i = 0;
     for (; i < NFRAMES; i++) {
-        if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_type == FR_PAGE && frm_tab[i].fr_status == FRM_MAPPED) {
+        //if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_type == FR_PAGE && frm_tab[i].fr_status == FRM_MAPPED) {
+        if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_type == FR_PAGE && frm_tab[i].fr_status == FRM_MAPPED) {    
             update_frame_dirty(i);
             if (frm_tab[i].fr_status = DIRTY) {
-                if (write_dirty_frame(frm_tab[i].fr_vpno) == SYSERR)
+                //if (write_dirty_frame(frm_tab[i].fr_vpno) == SYSERR)
+                if (write_dirty_frame(i) == SYSERR)
                     return SYSERR;
             }
         }

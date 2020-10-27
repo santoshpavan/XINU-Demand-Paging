@@ -93,12 +93,15 @@ void proc_test2(int i,int j,int* ret,int s) {
 
 	r = xmmap(MYVPNO1, i, j);
 	if (j<=50 && r == SYSERR){
+        //kprintf("FAIL! - 1 (%d)\n", currpid);
 		*ret = TFAILED;
 	}
 	if (j> 50 && r != SYSERR){
+        //kprintf("FAIL! - 2 (%d)\n", currpid);
 		*ret = TFAILED;
 	}
 	sleep(s);
+    kprintf("closing %d proc\n", currpid);
 	if (r != SYSERR) xmunmap(MYVPNO1);
 	release_bs(i);
 	return;
@@ -144,7 +147,10 @@ void proc1_test3(int i,int* ret) {
 	    return 0;
 	}
 	sleep(4);
+    kprintf("xunmap being called %d\n", currpid);
 	xmunmap(MYVPNO1);
+    kprintf("xunmap being called %d\n", currpid);
+	
 	release_bs(i);
 	return;
 }
@@ -197,23 +203,26 @@ void proc1_test4(int* ret) {
 	get_bs(MYBS1, 100);
 
 	if (xmmap(MYVPNO1, MYBS1, 100) == SYSERR) {
-		kprintf("xmmap call failed\n");
+		//kprintf("xmmap call failed!!!!!\n");
 		*ret = TFAILED;
 		sleep(3);
 		return;
 	}
-
+    //kprintf("PROC1 Writing!!!!!\n");
 	addr = (char*) MYVADDR1;
 	for (i = 0; i < 26; i++) {
 		*(addr + i * NBPG) = 'A' + i;
+        kprintf("-----wrote %c at %lu\n", ('A' + i), (unsigned long)(addr + i * NBPG)); 
 	}
-
+    //kprintf("\nPROC1 SLEEPING\n");
 	sleep(6);
-
+    
 	/*Shoud see what proc 2 updated*/
+    //kprintf("\nPROC1 reading(PROC2 expected)\n");
 	for (i = 0; i < 26; i++) {
 		/*expected output is abcde.....*/
 		if (*(addr + i * NBPG) != 'a'+i){
+            //kprintf("failed! at %lu. Exp: %c Found:%c", (unsigned long)(addr + i * NBPG), 'a'+i, 'A'+i);
 			*ret = TFAILED;
 			break;
 		}
@@ -625,34 +634,70 @@ int main() {
 
     // switch(s) {
         // case 1:
+        i=0;
+          kprintf("111111111\n");
+          for(; i < 8; i++) {
+              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
+          }
     	   test1();
         //    break;
         // case 2:
-    	   test2();
+          i=0;
+          kprintf("222222222\n");
+          for(; i < 8; i++) {
+              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
+          }
+           test2();
         //    break;
         // case 3:
+        i=0;
+          kprintf("33333333333\n");
+          for(; i < 8; i++) {
+              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
+          }
     	   test3();
         //    break;
         // case 4:
           //cehcking
-          /*
           i=0;
+          kprintf("4444444444\n");
           for(; i < 8; i++) {
-              kprintf("status(%d): %d and pvt: %d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt);
+              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
           }
-          */
+          
     	   test4();
         //    break;
         // case 5:
+        
+          i=0;
+          kprintf("5555555555\n");
+          for(; i < 8; i++) {
+              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
+          }
+          
     	   test5();
         //    break;
         // case 6:
+        i=0;
+          kprintf("66666666666\n");
+          for(; i < 8; i++) {
+              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
+          }
     	   test6();
         //    break;
         // case 7:
+        i=0;
+          kprintf("777777777777\n");
+          for(; i < 8; i++) {
+              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
+          }
            test7();
         //    break;
-        // case 8:
+        // case 8:i=0;
+          kprintf("888888888888888888\n");
+          for(; i < 8; i++) {
+              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
+          }
            test8();
         //    break;
         // default:

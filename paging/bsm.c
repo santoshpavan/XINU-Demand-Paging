@@ -9,9 +9,11 @@
  * init_bsm- initialize bsm_tab
  *-------------------------------------------------------------------------
  */
+STATWORD ps;
 SYSCALL init_bsm()
 {
-    kprintf("---init bsm\n");
+    disable(ps);
+    //kprintf("---init bsm\n");
 	int i = 0;
 	for (; i < NBSM; i++) {
 		bsm_tab[i].bs_status = BS_UNMAPPED;
@@ -21,6 +23,7 @@ SYSCALL init_bsm()
         bsm_tab[i].bs_vpno = -1;
 		bsm_tab[i].pvt = NOT_PRIVATE;
 	}
+    restore(ps);
 	return OK;
 }
 
@@ -30,11 +33,12 @@ SYSCALL init_bsm()
  */
 SYSCALL get_bsm(int* avail)
 {
+    disable(ps);
 	/* 
  	* interate through the bsm_tab
  	* the first one that is available take it.
  	*/
-    kprintf("getting bsm\n");
+    //kprintf("getting bsm\n");
 	int i = 0;
 	for (; i < NBSM; i++) {
 		if (bsm_tab[i].bs_status == BS_UNMAPPED) {
@@ -42,7 +46,8 @@ SYSCALL get_bsm(int* avail)
             return OK;
 		}
 	}
-    kprintf("getting bsm failed!!!\n");
+    //kprintf("getting bsm failed!!!\n");
+    restore(ps);
 	return SYSERR;
 }
 
@@ -53,14 +58,16 @@ SYSCALL get_bsm(int* avail)
  */
 SYSCALL free_bsm(int i)
 {
+    disable(ps);
 	// called when the BS is private and reset everything
-    kprintf("free bsm %d\n", i);
+    //kprintf("free bsm %d\n", i);
 	bsm_tab[i].bs_status = BS_UNMAPPED;
     bsm_tab[i].bs_pid = -1;
     bsm_tab[i].bs_npages = 0;
     bsm_tab[i].pvt = NOT_PRIVATE;
     bsm_tab[i].bs_vpno = -1;
     proctab[currpid].store = -1;
+    restore(ps);
     return OK;    
 }
 
@@ -68,26 +75,35 @@ SYSCALL free_bsm(int i)
  * bsm_lookup - lookup bsm_tab and find the corresponding entry
  *-------------------------------------------------------------------------
  */
-SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
+SYSCALL bsm_lookup(int pid, unsigned long vaddr, int* store, int* pageth)
 {
+    disable(ps);
     /*
     get storeid from the proctab
     check if that is valid
     check if vaddr is valid
     assign store and pageth values    
     */
-    if (vaddr < 0)
+    if (vaddr < 0) {
+        
+    restore(ps);
         return SYSERR;
+    }
     int bs_id = proctab[pid].store;
     // if processes has been unmapped
-    if (bs_id == -1)
+    if (bs_id == -1) {        
+    restore(ps);
         return SYSERR;
+    }
     //if (vaddr <= bsm_tab[bs_id].bs_npages) {
         *store = bs_id;
         // getting vpno from the vaddr
         //*pageth = vaddr>>12;
-        *pageth = (int)(vaddr/NBPG) - bsm_tab[bs_id].bs_vpno;
-    kprintf("bsm lookup! pid:%d store:%d pageth:%d\n", pid, bs_id, *pageth);                
+        //*pageth = (vaddr/NBPG) - bsm_tab[bs_id].bs_vpno;
+        *pageth = (unsigned int)(vaddr/NBPG) - (unsigned int)proctab[pid].vhpno;
+    //kprintf("bsm lookup! pid:%d store:%d pageth:%d\n", pid, bs_id, *pageth);                
+        
+    restore(ps);
         return OK;
     //}
     //kprintf("bsm lookup failed!!\n");
@@ -101,10 +117,13 @@ SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
  */
 SYSCALL bsm_map(int pid, int vpno, int source, int npages)
 {
-    //kprintf("bsm mapping pid%d, vpno:%d, bs:%d, pages:%d\n", pid, vpno, source, npages);
+    disable(ps);
+    //kprintf("bsm mapping pid%d(%d), vpno:%d, bs:%d, npages:%d\n", pid, currpid, vpno, source, npages);
 	
-    if (pid != currpid)
+    if (pid != currpid) {
+    restore(ps);
         return SYSERR;
+    }
     
     bsm_tab[source].bs_status = BS_MAPPED;
     //kprintf("1*********\n");
@@ -139,7 +158,9 @@ SYSCALL bsm_map(int pid, int vpno, int source, int npages)
         }
     }*/
     //kprintf("bsm mapping done!\n");
-	return OK;
+	
+    restore(ps);
+    return OK;
 }
 
 
@@ -149,13 +170,13 @@ SYSCALL bsm_map(int pid, int vpno, int source, int npages)
  */
 SYSCALL bsm_unmap(int pid, int vpno, int flag)
 {
-    kprintf("bsm unmapping pid: %d\n", currpid);
-	
-    if (pid != currpid)
+    disable(ps);
+    //kprintf("\nbsm unmapping pid: %d(curr:%d)\n", pid, currpid);
+	//kprintf("47 store: %d\n",proctab[pid].store);
+    /*if (pid != currpid)
         return SYSERR;
-	int bs_ind = proctab[pid].store;
-    proctab[pid].store = -1;
-    proctab[pid].vhpno = -1;
+	*/
+    int bs_ind = proctab[pid].store;
     if (bsm_tab[bs_ind].pvt == IS_PRIVATE) {
     	bsm_tab[bs_ind].bs_status = BS_UNMAPPED;
     	bsm_tab[bs_ind].pvt = NOT_PRIVATE;
@@ -165,18 +186,17 @@ SYSCALL bsm_unmap(int pid, int vpno, int flag)
         int proc_id = 1; //ignore NULLPROC and MAIN
         int count = 0;
         for (; proc_id < NPROC; proc_id++) {
+            //kprintf("iter: pid:%d, store:%d\n", proc_id, proctab[proc_id].store);
             if (proc_id != pid && proctab[proc_id].store == bs_ind) {
                 count++;
-                if (count >= 1) {
-                    break;
-                }
+                //kprintf("count: %d, pid: %d\n", count, proc_id);
             }
         }
-        if (count == 0) {
+        //kprintf("count: %d\n", count); 
+        if ((count == 0 && currpid != 49) || (currpid == 49 && count == 1)) {
             // the last proc in this shared store
             free_bsm(bs_ind);
         }
-                                
         /*shared_list *ptr = bsm_tab[bs_ind].bs_pids;
         shared_list *prev = NULL;
         while (ptr != NULL) {
@@ -189,5 +209,9 @@ SYSCALL bsm_unmap(int pid, int vpno, int flag)
             ptr = ptr->next;
         }*/
     }
+        proctab[pid].store = -1;
+    proctab[pid].vhpno = -1;
+    
+    restore(ps);
 	return OK;
 }
