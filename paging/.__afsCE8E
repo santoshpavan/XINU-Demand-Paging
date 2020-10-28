@@ -37,9 +37,10 @@ SYSCALL pfint()
       */  
 
       int store, page;
+      //kprintf("currpid PFINT: %d\n", currpid);
       // checking if fault_addr is legal
       if (bsm_lookup(currpid, fault_addr, &store, &page) == SYSERR) {
-          //kprintf("\nInvalid faulted address. Killing Process %s(%d)\n", proctab[currpid].pname, currpid);
+          kprintf("\nInvalid faulted address. Killing Process %s(%d)\n", proctab[currpid].pname, currpid);
           kill(currpid);
           return SYSERR;
       }
@@ -82,10 +83,6 @@ SYSCALL pfint()
       */
       //pt_t *fault_pte = (pt_t *) (fault_pde->pd_base + (long)pg_no<<2);
       pt_t *fault_pte = (pt_t *)((fault_pde->pd_base) * NBPG + pg_no*4);
-      fault_pte->pt_pres = 1;
-      fault_pte->pt_write = 1;
-      fault_pte->pt_dirty = 1;
-      
       int freeframe_ind;
       if (get_frm(&freeframe_ind) == SYSERR) {
               // perform page replacement to get the frame
@@ -227,8 +224,7 @@ SYSCALL write_dirty_frame(int frame_ind) {
             return SYSERR;
         }
         unsigned long pdbr = proctab[currpid].pdbr;
-        //unsigned int pd_offset = vpno>>10;
-        unsigned int pd_offset = vpno & 0xFFC00;
+        unsigned int pd_offset = vpno>>10;
         pd_t *pde = (pd_t *) (pdbr + (pd_offset*4));
         //write_bs((char *)(pde->pd_base), (bsd_t)store, page);
         write_bs((char *)((pde->pd_base) * NBPG), (bsd_t)store, page);

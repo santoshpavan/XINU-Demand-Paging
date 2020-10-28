@@ -86,8 +86,20 @@ int	resched()
 #ifdef	DEBUG
 	PrintSaved(nptr);
 #endif
-
+    
     /* PSP: things before context switch */
+    // read the frames of currpid
+    if (currpid != NULLPROC && currpid != 49) {
+        int bs_id = proctab[currpid].store;
+        int i = 0;
+        for (; i < NFRAMES; i++) {
+            if (frm_tab[i].fr_pid == currpid && frm_tab[i].fr_type == FR_PAGE && frm_tab[i].fr_status == FRM_MAPPED) {
+                unsigned int page = frm_tab[i].fr_vpno & 0x000003ff;
+                read_bs((char *)((i + FRAME0) * NBPG), (bsd_t)bs_id, page);
+            }
+        }
+    }
+    // write the dirty frames back of oldpid
     if (oldpid != NULLPROC && oldpid != 49) {
         if (dirty_frames_handler(oldpid) == SYSERR) {
             return SYSERR;
