@@ -213,7 +213,7 @@ unsigned long get_pteaddr(int frame_ind) {
 }
 
 SYSCALL write_dirty_frame(int frame_ind) {
-    //kprintf("writing dirty frame...%d for %d\n", frame_ind, currpid);
+    kprintf("writing dirty frame...%d for %d\n", frame_ind, currpid);
     unsigned long vpno = frm_tab[frame_ind].fr_vpno;
     pt_t *pte = (pt_t *) get_pteaddr(frame_ind);
     int pid = frm_tab[frame_ind].fr_pid;

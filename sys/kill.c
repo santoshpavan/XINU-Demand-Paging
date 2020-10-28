@@ -69,7 +69,7 @@ SYSCALL kill(int pid)
     */
     //kprintf("\nkilling proc %s (%d)\n", proctab[pid].pname, pid);
     release_bs(proctab[pid].store);
-    //free_frames_on_kill(currpid);
+    free_frames_on_kill(pid);
     
     restore(ps);
 	return(OK);
@@ -106,19 +106,25 @@ void free_frames_on_kill(int pid) {
         kprintf("SC Policy!\n");
         sc_list *clock_hand = sc_head.next;
         sc_list *prev = &sc_head;
-        while (clock_hand->ind != sc_tail.next->ind) {
-            if (frm_tab[clock_hand->ind].fr_pid == pid) {   
-                prev->next = clock_hand->next;
-                kprintf("doing the deed!\n");
-                write_dirty_frame(clock_hand->ind);
-                free_frm(clock_hand->ind);
-                
-                clock_hand = clock_hand->next;
+        do {
+            kprintf("ind:%d\n", clock_hand->ind);
+            if (frm_tab[clock_hand->ind].fr_pid == pid) {
+                if (clock_hand->next == clock_hand) {
+                    // only one
+                    sc_head.next = NULL;
+                }
+                else {
+                    write_dirty_frame(clock_hand->ind);
+                    free_frm(clock_hand->ind);
+                    //reset_frame(clock_hand->ind);
+                    prev->next = clock_hand->next;
+                    clock_hand = clock_hand->next;
+                }
             }
             else {
                 prev = prev->next;
                 clock_hand = clock_hand->next;
             }        
-        }
+        }while (clock_hand->ind != sc_head.next->ind && clock_hand != prev);   
     }
 }

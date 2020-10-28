@@ -218,11 +218,11 @@ void proc1_test4(int* ret) {
 	sleep(6);
     
 	/*Shoud see what proc 2 updated*/
-    //kprintf("\nPROC1 reading(PROC2 expected)\n");
+    kprintf("\nPROC1 reading(PROC2 expected)\n");
 	for (i = 0; i < 26; i++) {
 		/*expected output is abcde.....*/
 		if (*(addr + i * NBPG) != 'a'+i){
-            //kprintf("failed! at %lu. Exp: %c Found:%c", (unsigned long)(addr + i * NBPG), 'a'+i, 'A'+i);
+            kprintf("failed! at %lu. Exp: %c Found:%c", (unsigned long)(addr + i * NBPG), 'a'+i, 'A'+i);
 			*ret = TFAILED;
 			break;
 		}

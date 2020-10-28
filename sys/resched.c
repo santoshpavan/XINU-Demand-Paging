@@ -8,6 +8,7 @@
 
 unsigned long currSP;	/* REAL sp of current process */
 
+SYSCALL read_currpid_frames(int);
 SYSCALL dirty_frames_handler(int);
 void update_frame_dirty(int);
 
@@ -89,14 +90,10 @@ int	resched()
     
     /* PSP: things before context switch */
     // read the frames of currpid
+
     if (currpid != NULLPROC && currpid != 49) {
-        int bs_id = proctab[currpid].store;
-        int i = 0;
-        for (; i < NFRAMES; i++) {
-            if (frm_tab[i].fr_pid == currpid && frm_tab[i].fr_type == FR_PAGE && frm_tab[i].fr_status == FRM_MAPPED) {
-                unsigned int page = frm_tab[i].fr_vpno & 0x000003ff;
-                read_bs((char *)((i + FRAME0) * NBPG), (bsd_t)bs_id, page);
-            }
+        if (read_currpid_frames(currpid) == SYSERR) {
+            return SYSERR;
         }
     }
     // write the dirty frames back of oldpid
@@ -105,7 +102,7 @@ int	resched()
             return SYSERR;
         }
     }
-    //kprintf("oldpid: %d, ----- currpid:%d\n", oldpid, currpid);
+    kprintf("oldpid: %d, ----- currpid:%d\n", oldpid, currpid);
 	write_cr3(nptr->pdbr);
 
 	ctxsw(&optr->pesp, optr->pirmask, &nptr->pesp, nptr->pirmask);
@@ -143,11 +140,24 @@ PrintSaved(ptr)
 void update_frame_dirty(int frm_id) {
     pt_t *pte = (pt_t *) get_pteaddr(frm_id);
     if (pte->pt_dirty == DIRTY) {
+        kprintf("---dirty %\nd", frm_id);
         frm_tab[frm_id].fr_dirty = DIRTY;
     }
     else {
         frm_tab[frm_id].fr_dirty = NOT_DIRTY;
     }
+}
+
+SYSCALL read_currpid_frames(int pid) {
+    int bs_id = proctab[pid].store;
+        int i = 0;
+        for (; i < NFRAMES; i++) {
+            if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_type == FR_PAGE && frm_tab[i].fr_status == FRM_MAPPED) {
+                unsigned int page = frm_tab[i].fr_vpno & 0x000003ff;
+                read_bs((char *)((i + FRAME0) * NBPG), (bsd_t)bs_id, page);
+            }
+        }
+    return OK;
 }
 
 SYSCALL dirty_frames_handler(int pid) {
@@ -159,9 +169,11 @@ SYSCALL dirty_frames_handler(int pid) {
     kprintf("dirty frames ctxsw\n");
     int i = 0;
     for (; i < NFRAMES; i++) {
+        //kprintf("====i: %d\n", i);
         //if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_type == FR_PAGE && frm_tab[i].fr_status == FRM_MAPPED) {
         if (frm_tab[i].fr_pid == pid && frm_tab[i].fr_type == FR_PAGE && frm_tab[i].fr_status == FRM_MAPPED) {    
             update_frame_dirty(i);
+            kprintf("frame: %d\n",i);
             if (frm_tab[i].fr_status == DIRTY) {
                 //if (write_dirty_frame(frm_tab[i].fr_vpno) == SYSERR)
                 if (write_dirty_frame(i) == SYSERR)
@@ -169,4 +181,5 @@ SYSCALL dirty_frames_handler(int pid) {
             }
         }
     }
+    return OK;
 }
