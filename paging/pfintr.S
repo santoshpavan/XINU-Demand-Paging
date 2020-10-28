@@ -11,6 +11,6 @@ pfintr:
 	pushal
 	call pfint
 	popal
-	;sti
+	sti
 	popfl
 	iret

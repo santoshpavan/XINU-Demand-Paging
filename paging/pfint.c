@@ -23,8 +23,11 @@ SYSCALL pfint()
       //kprintf("faulting for %d at: %lu\n", currpid, fault_addr);
       unsigned long pt_no = fault_addr>>22;
       unsigned long vpno = fault_addr>>12;
-      unsigned long pg_no = vpno & 0x003FF;
-      unsigned long offset = (fault_addr<<20)>>20;
+      
+      unsigned long pg_no = vpno & 0x000003ff;
+      //unsigned long pg_no = vpno & 0x003FF;
+      //unsigned long offset = (fault_addr<<20)>>20;
+      unsigned long offset = fault_addr & 0x00000FFF;
       /*
       struct virt_addr_t fault_addr = (virt_addr_t) read_cr2();
       unsigned int pt_no = fault_addr.pd_offset;
@@ -170,7 +173,8 @@ int replace_page() {
     frm_tab[frame_ind].fr_refcnt--;
     if (frm_tab[frame_ind].fr_refcnt == 0) {
         int vpno = frm_tab[frame_ind].fr_vpno;
-        unsigned int pd_offset = vpno>>10;
+        //unsigned int pd_offset = vpno>>10;
+        unsigned long pd_offset = vpno & 0xFFC00;
         unsigned long pdbr = proctab[frm_tab[frame_ind].fr_pid].pdbr;
         pd_t *pde = (pd_t *) (pdbr + (pd_offset*4));
         pde->pd_pres = NOT_PRESENT;
@@ -194,8 +198,10 @@ int check_acc(int frame_ind) {
 
 unsigned long get_pteaddr(int frame_ind) {
     int vpno = frm_tab[frame_ind].fr_vpno;
-    unsigned int pd_offset = vpno>>10;
-    unsigned int pt_offset = (vpno<<10)>>10;
+    //unsigned long pd_offset1 = vpno>>10;
+    //unsigned long pt_offset1 = (vpno<<10)>>10;
+    unsigned long pd_offset = vpno & 0xFFC00;
+    unsigned long pt_offset = vpno & 0x003FF;
     unsigned long pdbr = proctab[frm_tab[frame_ind].fr_pid].pdbr;
     pd_t *pde = (pd_t *) (pdbr + (pd_offset*4));
     //return (pde->pd_base + (long)pt_offset<<2);
@@ -212,7 +218,7 @@ SYSCALL write_dirty_frame(int frame_ind) {
     if (pte->pt_dirty == DIRTY) {
         int store, page;
         if (bsm_lookup(pid, vpno * NBPG, &store, &page) == SYSERR) {
-            kprintf("\nInvalid Backing Store Lookup for Dirty Page in Freeframes. Killing Process %s(%d)\n", proctab[pid].pname, pid);
+            //kprintf("\nInvalid Backing Store Lookup for Dirty Page in Freeframes. Killing Process %s(%d)\n", proctab[pid].pname, pid);
             //kill(pid);
             return SYSERR;
         }
