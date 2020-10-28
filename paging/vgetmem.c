@@ -14,7 +14,6 @@ extern struct pentry proctab[];
 WORD	*vgetmem(nbytes)
 	unsigned nbytes;
 {
-	kprintf("\n---VGETMEM\n");
 	STATWORD ps;
     struct  mblock  *p, *q, *leftover;
     
@@ -24,7 +23,6 @@ WORD	*vgetmem(nbytes)
 		v_heap_memlist->mnext == (struct mblock *) NULL) {
         restore(ps);
         
-    kprintf("\n******FFFFFFFFFFFFFFFFFFFFFFF************\n");
         return( (WORD *)SYSERR);
     }
     nbytes = (unsigned int) roundmb(nbytes);
@@ -34,7 +32,6 @@ WORD	*vgetmem(nbytes)
         if ( p->mlen == nbytes) {
             q->mnext = p->mnext;
             restore(ps);
-            kprintf("RETURNED1: %x\n", (WORD *)p );
             return( (WORD *)p );
         } else if ( p->mlen > nbytes ) {
             leftover = (struct mblock *)( (unsigned)p + nbytes );
@@ -42,11 +39,9 @@ WORD	*vgetmem(nbytes)
             leftover->mnext = p->mnext;
             leftover->mlen = p->mlen - nbytes;
             restore(ps);
-            kprintf("RETURNED2: %x\n", (WORD *)p );
             return( (WORD *)p );
     }
     restore(ps);
-    kprintf("\n******FFFFFFFFFFFFFFFFFFFFFFF************\n");
     return( (WORD *)SYSERR );
 }
 

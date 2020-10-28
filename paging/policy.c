@@ -12,7 +12,6 @@ extern int page_replace_policy;
  */
 SYSCALL srpolicy(int policy)
 {
-	//kprintf("---setting policy!\n");
     if (policy != SC || policy != AGING)
         return SYSERR;
 	page_replace_policy = policy;
@@ -30,7 +29,6 @@ SYSCALL grpolicy()
 
 /* PSP: paging policy functions */
 void init_policy_lists() {
-    //kprintf("init policy lists...\n");
     // SC Policy
     sc_head.ind = -1;
     sc_head.next = NULL;

@@ -12,7 +12,6 @@ unsigned long tmp;
  *-------------------------------------------------------------------------
  */
 unsigned long read_cr0(void) {
-  //kprintf("---read cr0 \n");
   STATWORD ps;
   unsigned long local_tmp;
 
@@ -37,7 +36,6 @@ unsigned long read_cr0(void) {
 
 unsigned long read_cr2(void) {
 
-  //kprintf("---read cr2\n");
   STATWORD ps;
   unsigned long local_tmp;
 
@@ -63,7 +61,6 @@ unsigned long read_cr2(void) {
 
 unsigned long read_cr3(void) {
 
-  //kprintf("---read cr3\n");
   STATWORD ps;
   unsigned long local_tmp;
 
@@ -88,7 +85,6 @@ unsigned long read_cr3(void) {
  */
 
 unsigned long read_cr4(void) {
-  //kprintf("--- read cr4 \n");
 
   STATWORD ps;
   unsigned long local_tmp;
@@ -115,8 +111,6 @@ unsigned long read_cr4(void) {
 
 void write_cr0(unsigned long n) {
 
-  //kprintf("--- write cr0\n");
-
   STATWORD ps;
 
   disable(ps);
@@ -140,8 +134,6 @@ void write_cr0(unsigned long n) {
 
 void write_cr3(unsigned long n) {
 
-  //kprintf("--- write cr3! \n");
-
   STATWORD ps;
 
   disable(ps);
@@ -164,7 +156,6 @@ void write_cr3(unsigned long n) {
  */
 
 void write_cr4(unsigned long n) {
-  //kprintf("---write cr4\n");
   STATWORD ps;
 
   disable(ps);
@@ -186,7 +177,6 @@ void write_cr4(unsigned long n) {
  *-------------------------------------------------------------------------
  */
 void enable_paging(){
-  //kprintf("--- enable paging! \n");
   unsigned long temp =  read_cr0();
   temp = temp | ( 0x1 << 31 ) | 0x1;
   write_cr0(temp);

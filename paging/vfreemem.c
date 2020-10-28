@@ -14,21 +14,11 @@ extern struct pentry proctab[];
 SYSCALL	vfreemem(block, size)
 	struct	mblock	*block;
 	unsigned size;
-{
-	kprintf("---FREEMEM!\n");
-	
+{	
 	STATWORD ps;
     struct  mblock  *p, *q;
     unsigned top;
 	
-	/*
- 	* TODO: Change the maxaddr here as freemem deals with physical 
- 	* address and vfreemem is dealing with virtual memory
- 	*/	
-    /*
-    if (size==0 || (unsigned)block>(unsigned)maxaddr
-        || ((unsigned)block)<((unsigned) &end))
-    */
     unsigned long base_addr = BACKING_STORE_BASE + BACKING_STORE_UNIT_SIZE * proctab[currpid].store;
     unsigned long max_virt_addr = base_addr + proctab[currpid].vhpnpages*NBPG;
     if (size == 0 || (unsigned)block > max_virt_addr || (unsigned)block < base_addr)

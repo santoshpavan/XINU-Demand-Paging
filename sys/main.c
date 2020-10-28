@@ -93,15 +93,12 @@ void proc_test2(int i,int j,int* ret,int s) {
 
 	r = xmmap(MYVPNO1, i, j);
 	if (j<=50 && r == SYSERR){
-        //kprintf("FAIL! - 1 (%d)\n", currpid);
 		*ret = TFAILED;
 	}
 	if (j> 50 && r != SYSERR){
-        //kprintf("FAIL! - 2 (%d)\n", currpid);
 		*ret = TFAILED;
 	}
 	sleep(s);
-    kprintf("closing %d proc\n", currpid);
 	if (r != SYSERR) xmunmap(MYVPNO1);
 	release_bs(i);
 	return;
@@ -142,15 +139,11 @@ void proc1_test3(int i,int* ret) {
 	get_bs(i, 100);
 
 	if (xmmap(MYVPNO1, i, 100) == SYSERR) {
-        kprintf("\nxmmap failed! for %d", currpid);
 	    *ret = TFAILED;
 	    return 0;
 	}
 	sleep(4);
-    kprintf("xunmap being called %d\n", currpid);
 	xmunmap(MYVPNO1);
-    kprintf("xunmap being called %d\n", currpid);
-	
 	release_bs(i);
 	return;
 }
@@ -173,7 +166,6 @@ void test3() {
 	for(i=0;i < MAX_BSTORE;i++){
 		pids[i] = create(proc1_test3, 2000, 20, "proc1_test3", 2, i,&ret);
 		if (pids[i] == SYSERR){
-            kprintf("\n creation failed for %d", pids[i]);
 			ret = TFAILED;
 		}else{
 			resume(pids[i]);
@@ -181,10 +173,8 @@ void test3() {
 	}
 	sleep(1);
 	mypid = vcreate(proc2_test3, 2000, 100, 20, "proc2_test3", 0, NULL);
-	if (mypid != SYSERR) {
-		kprintf("private accessed!\n");
-        ret = TFAILED;
-    }
+	if (mypid != SYSERR)
+		ret = TFAILED;
 
 	for(i=0;i < MAX_BSTORE;i++){
 		kill(pids[i]);
@@ -203,26 +193,23 @@ void proc1_test4(int* ret) {
 	get_bs(MYBS1, 100);
 
 	if (xmmap(MYVPNO1, MYBS1, 100) == SYSERR) {
-		//kprintf("xmmap call failed!!!!!\n");
+		kprintf("xmmap call failed\n");
 		*ret = TFAILED;
 		sleep(3);
 		return;
 	}
-    //kprintf("PROC1 Writing!!!!!\n");
+
 	addr = (char*) MYVADDR1;
 	for (i = 0; i < 26; i++) {
 		*(addr + i * NBPG) = 'A' + i;
-        kprintf("-----wrote %c at %lu\n", ('A' + i), (unsigned long)(addr + i * NBPG)); 
 	}
-    //kprintf("\nPROC1 SLEEPING\n");
+
 	sleep(6);
-    
+
 	/*Shoud see what proc 2 updated*/
-    kprintf("\nPROC1 reading(PROC2 expected)\n");
 	for (i = 0; i < 26; i++) {
 		/*expected output is abcde.....*/
 		if (*(addr + i * NBPG) != 'a'+i){
-            kprintf("failed! at %lu. Exp: %c Found:%c", (unsigned long)(addr + i * NBPG), 'a'+i, 'A'+i);
 			*ret = TFAILED;
 			break;
 		}
@@ -381,7 +368,7 @@ void proc1_test6(int *ret) {
 		get_bs(i, 127);
 		if (xmmap(vpno, i, 127) == SYSERR) {
 			*ret = TFAILED;
-			kprintf("xmmap call failed 111\n");
+			kprintf("xmmap call failed\n");
 			sleep(3);
 			return;
 		}
@@ -634,70 +621,27 @@ int main() {
 
     // switch(s) {
         // case 1:
-        i=0;
-          kprintf("111111111\n");
-          for(; i < 8; i++) {
-              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
-          }
     	   test1();
         //    break;
         // case 2:
-          i=0;
-          kprintf("222222222\n");
-          for(; i < 8; i++) {
-              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
-          }
-           test2();
+    	   test2();
         //    break;
         // case 3:
-        i=0;
-          kprintf("33333333333\n");
-          for(; i < 8; i++) {
-              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
-          }
     	   test3();
         //    break;
         // case 4:
-          //cehcking
-          i=0;
-          kprintf("4444444444\n");
-          for(; i < 8; i++) {
-              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
-          }
-          
     	   test4();
         //    break;
         // case 5:
-        
-          i=0;
-          kprintf("5555555555\n");
-          for(; i < 8; i++) {
-              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
-          }
-          
     	   test5();
         //    break;
         // case 6:
-        i=0;
-          kprintf("66666666666\n");
-          for(; i < 8; i++) {
-              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
-          }
     	   test6();
         //    break;
         // case 7:
-        i=0;
-          kprintf("777777777777\n");
-          for(; i < 8; i++) {
-              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
-          }
            test7();
         //    break;
-        // case 8:i=0;
-          kprintf("888888888888888888\n");
-          for(; i < 8; i++) {
-              kprintf("status(%d): %d pvt: %d bs_npages:%d\n", i, bsm_tab[i].bs_status, bsm_tab[i].pvt, bsm_tab[i].bs_npages);
-          }
+        // case 8:
            test8();
         //    break;
         // default:

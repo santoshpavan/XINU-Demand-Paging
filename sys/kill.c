@@ -67,7 +67,6 @@ SYSCALL kill(int pid)
     clear bs: i.e. frm_tab unmapping
     clear paging lists - unmap those frames
     */
-    //kprintf("\nkilling proc %s (%d)\n", proctab[pid].pname, pid);
     release_bs(proctab[pid].store);
     free_frames_on_kill(pid);
     
@@ -82,9 +81,7 @@ void free_frames_on_kill(int pid) {
     write to bs if it's a dirty frame
     reset frame for that same frameid
     */
-    kprintf("freeing frames on kill\n");
     if (grpolicy() == AGING) {
-        kprintf("AG Policy!\n");
         ag_list *hand = ag_tail.next;
         ag_list *prev = &ag_tail;
         while(hand != NULL) {
@@ -103,11 +100,9 @@ void free_frames_on_kill(int pid) {
         }
     }
     else {
-        kprintf("SC Policy!\n");
         sc_list *clock_hand = sc_head.next;
         sc_list *prev = &sc_head;
         do {
-            kprintf("ind:%d\n", clock_hand->ind);
             if (frm_tab[clock_hand->ind].fr_pid == pid) {
                 if (clock_hand->next == clock_hand) {
                     // only one
@@ -116,7 +111,6 @@ void free_frames_on_kill(int pid) {
                 else {
                     write_dirty_frame(clock_hand->ind);
                     free_frm(clock_hand->ind);
-                    //reset_frame(clock_hand->ind);
                     prev->next = clock_hand->next;
                     clock_hand = clock_hand->next;
                 }
