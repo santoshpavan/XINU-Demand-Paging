@@ -146,6 +146,7 @@ int replace_page() {
         pd_t *pde = (pd_t *) (pdbr + (pd_offset*4));
         pde->pd_pres = NOT_PRESENT;
     }
+    kprintf("The frame index (form 0) replaced: %d\n", frame_ind+FRAME0);
     return frame_ind;
 }
 
